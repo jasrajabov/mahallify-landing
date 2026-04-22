@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mahallify — Your Community, Always Close</title>
+    <meta
+      name="description"
+      content="Mahallify connects Central Asian diaspora communities in the US and Canada. Find jobs, housing, marketplace deals, local businesses, events, and travel connections — all in one place."
+    />
+    <meta
+      property="og:title"
+      content="Mahallify — Your Community, Always Close"
+    />
+    <meta
+      property="og:description"
+      content="The all-in-one community platform for Central Asian diaspora in North America."
+    />
+    <meta property="og:image" content="og-image.jpg" />
+    <meta property="og:url" content="https://mahallify.us" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --primary: #1d4ed8;
+        --primary-dark: #1e3a8a;
+        --primary-deeper: #091740;
+        --bg: #f4f7ff;
+        --surface: #ffffff;
+        --text: #0d1526;
+        --text-secondary: #2e3f6f;
+        --text-tertiary: #647baa;
+        --border: #dfe9ff;
+        --jobs: #f59e0b;
+        --housing: #0891b2;
+        --offers: #10b981;
+        --marketplace: #8b5cf6;
+        --travelling: #0ea5e9;
+        --events: #ec4899;
+        --directory: #f97316;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .nav-logo-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .nav-logo-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .nav-logo-text {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.4px;
+      }
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        transition:
+          background 0.2s,
+          transform 0.15s;
+      }
+      .nav-cta:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+      }
+
+      /* ── HERO ── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(
+          160deg,
+          var(--primary-deeper) 0%,
+          var(--primary) 60%,
+          #2563eb 100%
+        );
+        padding: 100px 24px 80px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 70% 50%,
+          rgba(255, 255, 255, 0.06) 0%,
+          transparent 60%
+        );
+      }
+      .hero-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+      .hero-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 24px;
+      }
+      .hero-badge-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 8px #4ade80;
+      }
+      .hero h1 {
+        font-size: clamp(38px, 5vw, 60px);
+        font-weight: 900;
+        color: #fff;
+        line-height: 1.1;
+        letter-spacing: -1.5px;
+        margin-bottom: 20px;
+      }
+      .hero h1 span {
+        background: linear-gradient(90deg, #93c5fd, #c4b5fd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-sub {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.7;
+        margin-bottom: 36px;
+        max-width: 480px;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        color: var(--primary);
+        text-decoration: none;
+        padding: 16px 28px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 800;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      }
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        text-decoration: none;
+        padding: 16px 28px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        transition: background 0.2s;
+      }
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .hero-langs {
+        margin-top: 36px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .hero-langs-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .lang-pill {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      /* phone mockup */
+      .hero-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+      .phone-wrap {
+        position: relative;
+        width: 280px;
+      }
+      .phone {
+        width: 280px;
+        height: 560px;
+        background: linear-gradient(160deg, #0e1b30, #152535);
+        border-radius: 44px;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        box-shadow:
+          0 40px 80px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 255, 255, 0.05),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        position: relative;
+      }
+      .phone-notch {
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 28px;
+        background: #080e1c;
+        border-radius: 20px;
+        z-index: 2;
+      }
+      .phone-screen {
+        position: absolute;
+        inset: 0;
+        padding: 60px 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .phone-header {
+        background: linear-gradient(135deg, #091740, #1d4ed8);
+        border-radius: 20px;
+        padding: 16px;
+        color: #fff;
+      }
+      .phone-header-title {
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 4px;
+      }
+      .phone-header-sub {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .phone-card {
+        background: #0e1b30;
+        border: 1px solid #1e2e4a;
+        border-radius: 14px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .phone-card-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .phone-card-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .phone-card-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #e8f0ff;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .phone-card-sub {
+        font-size: 9px;
+        color: #52708c;
+      }
+      .phone-card-price {
+        font-size: 11px;
+        font-weight: 800;
+        color: #22c55e;
+        flex-shrink: 0;
+      }
+      .phone-float {
+        position: absolute;
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 10px 14px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        border: 1px solid var(--border);
+      }
+      .phone-float-1 {
+        top: 80px;
+        right: -60px;
+      }
+      .phone-float-2 {
+        bottom: 140px;
+        left: -60px;
+      }
+      .float-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── SECTIONS ── */
+      section {
+        padding: 96px 24px;
+      }
+      .section-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--primary);
+        margin-bottom: 14px;
+      }
+      .section-label::before {
+        content: "";
+        width: 20px;
+        height: 2px;
+        background: var(--primary);
+        border-radius: 2px;
+      }
+      h2 {
+        font-size: clamp(28px, 4vw, 44px);
+        font-weight: 900;
+        color: var(--text);
+        line-height: 1.15;
+        letter-spacing: -1px;
+        margin-bottom: 16px;
+      }
+      .section-sub {
+        font-size: 18px;
+        color: var(--text-secondary);
+        max-width: 560px;
+        line-height: 1.7;
+        margin-bottom: 56px;
+      }
+
+      /* ── STATS ── */
+      .stats {
+        background: linear-gradient(
+          135deg,
+          var(--primary-deeper),
+          var(--primary)
+        );
+        padding: 64px 24px;
+      }
+      .stats-grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 40px;
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 48px;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -2px;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+      .stat-value span {
+        font-size: 28px;
+        vertical-align: super;
+      }
+      .stat-label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+      }
+
+      /* ── FEATURES GRID ── */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .feature-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 28px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(29, 78, 216, 0.1);
+      }
+      .feature-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 18px;
+      }
+      .feature-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
+      }
+      .feature-desc {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      /* ── HOW IT WORKS ── */
+      .how-bg {
+        background: var(--surface);
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        position: relative;
+      }
+      .steps::before {
+        content: "";
+        position: absolute;
+        top: 28px;
+        left: calc(16.6% + 28px);
+        right: calc(16.6% + 28px);
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary), var(--primary));
+        opacity: 0.15;
+      }
+      .step {
+        text-align: center;
+      }
+      .step-num {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary-deeper),
+          var(--primary)
+        );
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 24px rgba(29, 78, 216, 0.3);
+      }
+      .step-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 10px;
+      }
+      .step-desc {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      /* ── LANGUAGES ── */
+      .langs-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 16px;
+      }
+      .lang-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px 12px;
+        text-align: center;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .lang-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(29, 78, 216, 0.1);
+      }
+      .lang-flag {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+      .lang-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .lang-native {
+        font-size: 11px;
+        color: var(--text-tertiary);
+        margin-top: 2px;
+      }
+
+      /* ── CTA ── */
+      .cta-section {
+        background: linear-gradient(
+          160deg,
+          var(--primary-deeper) 0%,
+          var(--primary) 100%
+        );
+        text-align: center;
+        padding: 96px 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .cta-section::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 0%,
+          rgba(255, 255, 255, 0.08) 0%,
+          transparent 60%
+        );
+      }
+      .cta-section .section-inner {
+        position: relative;
+        z-index: 1;
+      }
+      .cta-section h2 {
+        color: #fff;
+        margin-bottom: 16px;
+      }
+      .cta-section .section-sub {
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0 auto 44px;
+      }
+      .store-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .store-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        text-decoration: none;
+        padding: 14px 24px;
+        border-radius: 14px;
+        transition:
+          background 0.2s,
+          transform 0.15s;
+        min-width: 180px;
+      }
+      .store-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+      .store-btn-icon {
+        font-size: 28px;
+      }
+      .store-btn-text {
+        text-align: left;
+      }
+      .store-btn-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .store-btn-name {
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        background: var(--text);
+        padding: 48px 24px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .footer-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .footer-logo-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .footer-logo-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .footer-logo-text {
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+      }
+      .footer-links {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .footer-links a {
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .footer-links a:hover {
+        color: #fff;
+      }
+      .footer-copy {
+        font-size: 13px;
+        width: 100%;
+        text-align: center;
+        margin-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 24px;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 900px) {
+        .hero-inner {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+        .hero-sub {
+          margin: 0 auto 36px;
+        }
+        .hero-actions {
+          justify-content: center;
+        }
+        .hero-langs {
+          justify-content: center;
+        }
+        .hero-visual {
+          display: none;
+        }
+        .features-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .steps::before {
+          display: none;
+        }
+        .langs-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .langs-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .phone-float {
+          display: none;
+        }
+        nav .nav-cta span {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav>
+      <div class="nav-inner">
+        <a href="#" class="nav-logo">
+          <div class="nav-logo-icon">
+            <img src="logo.jpg" alt="Mahallify" />
+          </div>
+          <span class="nav-logo-text">Mahallify</span>
+        </a>
+        <a href="#download" class="nav-cta"> <span>Download App</span> → </a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-grid"></div>
+      <div class="hero-inner">
+        <div>
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Now available on the App Store
+          </div>
+          <h1>Your Community,<br /><span>Always Close</span></h1>
+          <p class="hero-sub">
+            Mahallify connects Central Asian diaspora communities in the US and
+            Canada. Find jobs, housing, local businesses, and stay connected
+            with people who share your culture.
+          </p>
+          <div class="hero-actions">
+            <a href="#download" class="btn-primary">🍎 Download on iOS</a>
+            <a href="#features" class="btn-secondary">See Features →</a>
+          </div>
+          <div class="hero-langs">
+            <span class="hero-langs-label">Available in</span>
+            <span class="lang-pill">🇺🇸 EN</span>
+            <span class="lang-pill">🇷🇺 RU</span>
+            <span class="lang-pill">🇺🇿 UZ</span>
+            <span class="lang-pill">🇹🇯 TJ</span>
+            <span class="lang-pill">🇰🇬 KG</span>
+            <span class="lang-pill">🇰🇿 KZ</span>
+            <span class="lang-pill">🇹🇲 TM</span>
+          </div>
+        </div>
+
+        <!-- Phone mockup -->
+        <div class="hero-visual">
+          <div class="phone-wrap">
+            <div class="phone">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <div class="phone-header">
+                  <div class="phone-header-title">Good Morning 👋</div>
+                  <div class="phone-header-sub">
+                    Find what your community needs
+                  </div>
+                </div>
+                <div class="phone-card">
+                  <div
+                    class="phone-card-icon"
+                    style="background: rgba(245, 158, 11, 0.15)"
+                  >
+                    💼
+                  </div>
+                  <div class="phone-card-body">
+                    <div class="phone-card-title">
+                      Restaurant Cook • Brooklyn
+                    </div>
+                    <div class="phone-card-sub">Full-time · Posted 2h ago</div>
+                  </div>
+                  <div class="phone-card-price">$22/hr</div>
+                </div>
+                <div class="phone-card">
+                  <div
+                    class="phone-card-icon"
+                    style="background: rgba(8, 145, 178, 0.15)"
+                  >
+                    🏠
+                  </div>
+                  <div class="phone-card-body">
+                    <div class="phone-card-title">
+                      2BR Apartment • Queens, NY
+                    </div>
+                    <div class="phone-card-sub">Available now · 2 bed</div>
+                  </div>
+                  <div class="phone-card-price">$1,800</div>
+                </div>
+                <div class="phone-card">
+                  <div
+                    class="phone-card-icon"
+                    style="background: rgba(14, 165, 233, 0.15)"
+                  >
+                    ✈️
+                  </div>
+                  <div class="phone-card-body">
+                    <div class="phone-card-title">
+                      Flying to Tashkent · May 12
+                    </div>
+                    <div class="phone-card-sub">
+                      Can carry documents & small pkg
+                    </div>
+                  </div>
+                  <div class="phone-card-price">$30</div>
+                </div>
+                <div class="phone-card">
+                  <div
+                    class="phone-card-icon"
+                    style="background: rgba(236, 72, 153, 0.15)"
+                  >
+                    🎉
+                  </div>
+                  <div class="phone-card-body">
+                    <div class="phone-card-title">Nowruz Celebration • Sat</div>
+                    <div class="phone-card-sub">142 going · Free entry</div>
+                  </div>
+                  <div class="phone-card-price">Free</div>
+                </div>
+              </div>
+            </div>
+            <div class="phone-float phone-float-1">
+              <span style="color: #16a34a; font-size: 16px">✓</span> Job found
+              in Queens
+            </div>
+            <div class="phone-float phone-float-2">
+              <span class="float-dot" style="background: #ec4899"></span> 142
+              attending tonight
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stats-grid">
+        <div>
+          <div class="stat-value">7</div>
+          <div class="stat-label">Languages Supported</div>
+        </div>
+        <div>
+          <div class="stat-value">2</div>
+          <div class="stat-label">Countries (US & Canada)</div>
+        </div>
+        <div>
+          <div class="stat-value">7</div>
+          <div class="stat-label">Community Sections</div>
+        </div>
+        <div>
+          <div class="stat-value">1</div>
+          <div class="stat-label">Community Platform</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="section-inner">
+        <div class="section-label">Everything in one place</div>
+        <h2>Built for your community's real needs</h2>
+        <p class="section-sub">
+          From finding your next job to sending a package back home — Mahallify
+          has every corner of community life covered.
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(245, 158, 11, 0.12)"
+            >
+              💼
+            </div>
+            <div class="feature-title">Jobs</div>
+            <div class="feature-desc">
+              Post job openings or find work. Browse by category, location, and
+              type. Supports both employers and job seekers across the US and
+              Canada.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(8, 145, 178, 0.12)"
+            >
+              🏠
+            </div>
+            <div class="feature-title">Housing</div>
+            <div class="feature-desc">
+              Find rentals, sublets, roommates, and homes for sale. Filter by
+              price, location, and type. Map view included.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(139, 92, 246, 0.12)"
+            >
+              🛍️
+            </div>
+            <div class="feature-title">Marketplace</div>
+            <div class="feature-desc">
+              Buy and sell items within your community. Electronics, furniture,
+              clothing, vehicles, and more — from people you can trust.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(16, 185, 129, 0.12)"
+            >
+              🤝
+            </div>
+            <div class="feature-title">Community Offers</div>
+            <div class="feature-desc">
+              Give and receive rides, food, services, and free items.
+              Community-driven generosity made simple.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(14, 165, 233, 0.12)"
+            >
+              ✈️
+            </div>
+            <div class="feature-title">Travel & Delivery</div>
+            <div class="feature-desc">
+              Traveling to Central Asia? Carry packages for your community. Need
+              something sent home? Find a trusted traveler going your way.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(236, 72, 153, 0.12)"
+            >
+              🎉
+            </div>
+            <div class="feature-title">Events</div>
+            <div class="feature-desc">
+              Discover and RSVP to local cultural events, festivals, gatherings,
+              and community meetups near you.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(249, 115, 22, 0.12)"
+            >
+              🏪
+            </div>
+            <div class="feature-title">Business Directory</div>
+            <div class="feature-desc">
+              Find immigrant-owned businesses and service providers. Verified
+              listings, ratings, and reviews from people in your community.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(29, 78, 216, 0.1)"
+            >
+              📍
+            </div>
+            <div class="feature-title">Location Filters</div>
+            <div class="feature-desc">
+              Browse listings by state, province, or country. Smart location
+              filtering shows you what's relevant to you.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="background: rgba(99, 102, 241, 0.12)"
+            >
+              💬
+            </div>
+            <div class="feature-title">Direct Messaging</div>
+            <div class="feature-desc">
+              Contact sellers, landlords, and employers directly within the app.
+              Trusted, private communication.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-bg">
+      <div class="section-inner">
+        <div class="section-label">Simple by design</div>
+        <h2>Get started in minutes</h2>
+        <p class="section-sub">
+          No complicated setup. Just download, create your profile, and start
+          connecting with your community.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-title">Download the app</div>
+            <div class="step-desc">
+              Available on iOS. Create your free account in under a minute using
+              your email.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-title">Set your location</div>
+            <div class="step-desc">
+              Choose your city, state, or country. See listings and events that
+              are actually near you.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-title">Connect & post</div>
+            <div class="step-desc">
+              Browse what your community offers, or post your own listing in
+              seconds. It's free.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LANGUAGES -->
+    <section>
+      <div class="section-inner">
+        <div class="section-label">Multilingual</div>
+        <h2>Speak your language</h2>
+        <p class="section-sub">
+          Mahallify is fully translated into 7 languages — because your
+          community shouldn't have to navigate in a foreign tongue.
+        </p>
+
+        <div class="langs-grid">
+          <div class="lang-card">
+            <div class="lang-flag">🇺🇸</div>
+            <div class="lang-name">English</div>
+            <div class="lang-native">English</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-flag">🇷🇺</div>
+            <div class="lang-name">Russian</div>
+            <div class="lang-native">Русский</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-flag">🇺🇿</div>
+            <div class="lang-name">Uzbek</div>
+            <div class="lang-native">O'zbek</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-flag">🇹🇯</div>
+            <div class="lang-name">Tajik</div>
+            <div class="lang-native">Тоҷикӣ</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-flag">🇰🇬</div>
+            <div class="lang-name">Kyrgyz</div>
+            <div class="lang-native">Кыргызча</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-flag">🇰🇿</div>
+            <div class="lang-name">Kazakh</div>
+            <div class="lang-native">Қазақша</div>
+          </div>
+          <div class="lang-card">
+            <div class="lang-flag">🇹🇲</div>
+            <div class="lang-name">Turkmen</div>
+            <div class="lang-native">Türkmen</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" id="download">
+      <div class="section-inner">
+        <h2>Join your community today</h2>
+        <p class="section-sub">
+          Download Mahallify and connect with thousands of people who share your
+          culture, language, and values.
+        </p>
+        <div class="store-buttons">
+          <a href="#" class="store-btn">
+            <span class="store-btn-icon">🍎</span>
+            <div class="store-btn-text">
+              <div class="store-btn-label">Download on the</div>
+              <div class="store-btn-name">App Store</div>
+            </div>
+          </a>
+          <a href="#" class="store-btn" style="opacity: 0.6; cursor: default">
+            <span class="store-btn-icon">▶️</span>
+            <div class="store-btn-text">
+              <div class="store-btn-label">Coming soon on</div>
+              <div class="store-btn-name">Google Play</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-inner">
+        <a href="#" class="footer-logo">
+          <div class="footer-logo-icon">
+            <img src="logo.jpg" alt="Mahallify" />
+          </div>
+          <span class="footer-logo-text">Mahallify</span>
+        </a>
+        <div class="footer-links">
+          <a href="mailto:admin@mahallify.us">Contact</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Use</a>
+        </div>
+      </div>
+      <div class="footer-inner">
+        <p class="footer-copy">
+          © 2026 Mahallify. All rights reserved. Made with ❤️ for the community.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
