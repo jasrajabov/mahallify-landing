@@ -73,10 +73,8 @@
         left: 0;
         right: 0;
         z-index: 100;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid var(--border);
+        background: var(--primary-deeper);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
       .nav-inner {
         max-width: 1100px;
@@ -86,12 +84,14 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 32px;
       }
       .nav-logo {
         display: flex;
         align-items: center;
         gap: 10px;
         text-decoration: none;
+        flex-shrink: 0;
       }
       .nav-logo-icon {
         width: 36px;
@@ -108,26 +108,44 @@
       .nav-logo-text {
         font-size: 18px;
         font-weight: 800;
-        color: var(--text);
+        color: #fff;
         letter-spacing: -0.4px;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        flex: 1;
+      }
+      .nav-links a {
+        color: rgba(255, 255, 255, 0.65);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s;
+        white-space: nowrap;
+      }
+      .nav-links a:hover {
+        color: #fff;
       }
       .nav-cta {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: var(--primary);
-        color: #fff;
+        background: #fff;
+        color: var(--primary-deeper);
         text-decoration: none;
         padding: 10px 20px;
         border-radius: 10px;
         font-size: 14px;
         font-weight: 700;
+        flex-shrink: 0;
         transition:
-          background 0.2s,
+          opacity 0.2s,
           transform 0.15s;
       }
       .nav-cta:hover {
-        background: var(--primary-dark);
+        opacity: 0.9;
         transform: translateY(-1px);
       }
 
@@ -257,8 +275,27 @@
       .btn-secondary:hover {
         background: rgba(255, 255, 255, 0.2);
       }
+      .hero-rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .hero-rating-stars {
+        color: #fbbf24;
+        font-size: 15px;
+        letter-spacing: 1px;
+      }
+      .hero-rating-text {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .hero-rating-text strong {
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 700;
+      }
       .hero-langs {
-        margin-top: 36px;
+        margin-top: 28px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -290,7 +327,25 @@
       }
       .phone-wrap {
         position: relative;
-        width: 280px;
+        width: 440px;
+      }
+      .phones-duo {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        justify-content: center;
+      }
+      .phone--sm {
+        width: 200px;
+        height: 420px;
+        border-radius: 36px;
+        flex-shrink: 0;
+      }
+      .phone-duo-left {
+        transform: rotate(-5deg) translateY(24px);
+      }
+      .phone-duo-right {
+        transform: rotate(5deg);
       }
       .phone {
         width: 280px;
@@ -397,12 +452,20 @@
         border: 1px solid var(--border);
       }
       .phone-float-1 {
-        top: 80px;
-        right: -60px;
+        top: 60px;
+        right: -70px;
       }
       .phone-float-2 {
-        bottom: 140px;
-        left: -60px;
+        bottom: 130px;
+        left: -70px;
+      }
+      .phone-float-3 {
+        top: 20px;
+        left: -70px;
+      }
+      .phone-float-4 {
+        bottom: 60px;
+        right: -70px;
       }
       .float-dot {
         width: 8px;
@@ -618,6 +681,101 @@
         margin-top: 2px;
       }
 
+      /* ── SUPPORT ── */
+      .support-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 48px;
+      }
+      .support-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 28px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .support-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(29, 78, 216, 0.1);
+      }
+      .support-card-icon {
+        font-size: 28px;
+        margin-bottom: 14px;
+      }
+      .support-card-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+      .support-card-desc {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+      .support-email-box {
+        background: linear-gradient(
+          135deg,
+          var(--primary-deeper),
+          var(--primary)
+        );
+        border-radius: 20px;
+        padding: 36px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .support-email-label {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 6px;
+      }
+      .support-email-address {
+        font-size: 22px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.3px;
+      }
+      .support-email-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        color: var(--primary);
+        text-decoration: none;
+        padding: 14px 26px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 800;
+        white-space: nowrap;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        flex-shrink: 0;
+      }
+      .support-email-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+      @media (max-width: 900px) {
+        .support-grid {
+          grid-template-columns: 1fr;
+        }
+        .support-email-box {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 28px;
+        }
+      }
+
       /* ── CTA ── */
       .cta-section {
         background: linear-gradient(
@@ -694,24 +852,23 @@
 
       /* ── FOOTER ── */
       footer {
-        background: var(--text);
-        padding: 48px 24px;
+        background: var(--primary-deeper);
+        padding: 64px 24px 32px;
         color: rgba(255, 255, 255, 0.6);
       }
-      .footer-inner {
+      .footer-grid {
         max-width: 1100px;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
+        margin: 0 auto 48px;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 48px;
       }
       .footer-logo {
         display: flex;
         align-items: center;
         gap: 10px;
         text-decoration: none;
+        margin-bottom: 16px;
       }
       .footer-logo-icon {
         width: 32px;
@@ -730,32 +887,59 @@
         font-weight: 800;
         color: #fff;
       }
-      .footer-links {
-        display: flex;
-        gap: 24px;
-        flex-wrap: wrap;
+      .footer-tagline {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.45);
+        line-height: 1.7;
+        max-width: 280px;
       }
-      .footer-links a {
-        color: rgba(255, 255, 255, 0.5);
+      .footer-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .footer-col-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.35);
+        margin-bottom: 4px;
+      }
+      .footer-col a {
+        color: rgba(255, 255, 255, 0.55);
         text-decoration: none;
         font-size: 14px;
         font-weight: 500;
         transition: color 0.2s;
       }
-      .footer-links a:hover {
+      .footer-col a:hover {
         color: #fff;
       }
-      .footer-copy {
-        font-size: 13px;
-        width: 100%;
-        text-align: center;
-        margin-top: 24px;
+      .footer-bottom {
+        max-width: 1100px;
+        margin: 0 auto;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 13px;
       }
 
       /* ── RESPONSIVE ── */
       @media (max-width: 900px) {
+        .nav-links {
+          display: none;
+        }
+        .footer-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .footer-brand {
+          grid-column: 1 / -1;
+        }
         .hero-inner {
           grid-template-columns: 1fr;
           text-align: center;
@@ -764,6 +948,9 @@
           margin: 0 auto 36px;
         }
         .hero-actions {
+          justify-content: center;
+        }
+        .hero-rating {
           justify-content: center;
         }
         .hero-langs {
@@ -798,10 +985,10 @@
         .langs-grid {
           grid-template-columns: repeat(3, 1fr);
         }
-        .phone-float {
-          display: none;
+        .footer-grid {
+          grid-template-columns: 1fr;
         }
-        nav .nav-cta span {
+        .phone-float {
           display: none;
         }
       }
@@ -817,7 +1004,12 @@
           </div>
           <span class="nav-logo-text">Mahallify</span>
         </a>
-        <a href="#download" class="nav-cta"> <span>Download App</span> → </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#support">Support</a>
+        </div>
+        <a href="#download" class="nav-cta">Download App</a>
       </div>
     </nav>
 
@@ -840,6 +1032,12 @@
             <a href="#download" class="btn-primary">🍎 Download on iOS</a>
             <a href="#features" class="btn-secondary">See Features →</a>
           </div>
+          <!-- <div class="hero-rating">
+            <span class="hero-rating-stars">★★★★★</span>
+            <span class="hero-rating-text"
+              ><strong>4.8</strong> · Rated on the App Store</span
+            >
+          </div> -->
           <div class="hero-langs">
             <span class="hero-langs-label">Available in</span>
             <span class="lang-pill">🇺🇸 EN</span>
@@ -855,75 +1053,30 @@
         <!-- Phone mockup -->
         <div class="hero-visual">
           <div class="phone-wrap">
-            <div class="phone">
-              <div class="phone-notch"></div>
-              <div class="phone-screen">
-                <div class="phone-header">
-                  <div class="phone-header-title">Good Morning 👋</div>
-                  <div class="phone-header-sub">
-                    Find what your community needs
-                  </div>
-                </div>
-                <div class="phone-card">
-                  <div
-                    class="phone-card-icon"
-                    style="background: rgba(245, 158, 11, 0.15)"
-                  >
-                    💼
-                  </div>
-                  <div class="phone-card-body">
-                    <div class="phone-card-title">
-                      Restaurant Cook • Brooklyn
-                    </div>
-                    <div class="phone-card-sub">Full-time · Posted 2h ago</div>
-                  </div>
-                  <div class="phone-card-price">$22/hr</div>
-                </div>
-                <div class="phone-card">
-                  <div
-                    class="phone-card-icon"
-                    style="background: rgba(8, 145, 178, 0.15)"
-                  >
-                    🏠
-                  </div>
-                  <div class="phone-card-body">
-                    <div class="phone-card-title">
-                      2BR Apartment • Queens, NY
-                    </div>
-                    <div class="phone-card-sub">Available now · 2 bed</div>
-                  </div>
-                  <div class="phone-card-price">$1,800</div>
-                </div>
-                <div class="phone-card">
-                  <div
-                    class="phone-card-icon"
-                    style="background: rgba(14, 165, 233, 0.15)"
-                  >
-                    ✈️
-                  </div>
-                  <div class="phone-card-body">
-                    <div class="phone-card-title">
-                      Flying to Tashkent · May 12
-                    </div>
-                    <div class="phone-card-sub">
-                      Can carry documents & small pkg
-                    </div>
-                  </div>
-                  <div class="phone-card-price">$30</div>
-                </div>
-                <div class="phone-card">
-                  <div
-                    class="phone-card-icon"
-                    style="background: rgba(236, 72, 153, 0.15)"
-                  >
-                    🎉
-                  </div>
-                  <div class="phone-card-body">
-                    <div class="phone-card-title">Nowruz Celebration • Sat</div>
-                    <div class="phone-card-sub">142 going · Free entry</div>
-                  </div>
-                  <div class="phone-card-price">Free</div>
-                </div>
+            <div class="phones-duo">
+              <div class="phone phone--sm phone-duo-left">
+                <img
+                  src="screenshot-home.png"
+                  alt="Mahallify home screen"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: top;
+                  "
+                />
+              </div>
+              <div class="phone phone--sm phone-duo-right">
+                <img
+                  src="screenshot-chat.png"
+                  alt="Mahallify chat screen"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: top;
+                  "
+                />
               </div>
             </div>
             <div class="phone-float phone-float-1">
@@ -933,6 +1086,13 @@
             <div class="phone-float phone-float-2">
               <span class="float-dot" style="background: #ec4899"></span> 142
               attending tonight
+            </div>
+            <div class="phone-float phone-float-3">
+              🏠 Apartment rented in Brooklyn
+            </div>
+            <div class="phone-float phone-float-4">
+              <span class="float-dot" style="background: #0ea5e9"></span>
+              Traveler found for May 12
             </div>
           </div>
         </div>
@@ -1095,7 +1255,7 @@
     </section>
 
     <!-- HOW IT WORKS -->
-    <section class="how-bg">
+    <section class="how-bg" id="how-it-works">
       <div class="section-inner">
         <div class="section-label">Simple by design</div>
         <h2>Get started in minutes</h2>
@@ -1183,6 +1343,55 @@
       </div>
     </section>
 
+    <!-- SUPPORT -->
+    <section class="how-bg" id="support">
+      <div class="section-inner">
+        <div class="section-label">Support</div>
+        <h2>We're here to help</h2>
+        <p class="section-sub">
+          Have a question or running into an issue? Our team is ready to help
+          you get the most out of Mahallify.
+        </p>
+
+        <div class="support-grid">
+          <div class="support-card">
+            <div class="support-card-icon">🔐</div>
+            <div class="support-card-title">Account & Login</div>
+            <div class="support-card-desc">
+              Trouble signing in, resetting your password, or managing your
+              profile? We'll get you back in quickly.
+            </div>
+          </div>
+          <div class="support-card">
+            <div class="support-card-icon">📋</div>
+            <div class="support-card-title">Listings & Posts</div>
+            <div class="support-card-desc">
+              Questions about posting a job, housing, or marketplace listing? We
+              can walk you through it.
+            </div>
+          </div>
+          <div class="support-card">
+            <div class="support-card-icon">🚩</div>
+            <div class="support-card-title">Report an Issue</div>
+            <div class="support-card-desc">
+              Spotted something that doesn't look right? Report suspicious
+              listings or inappropriate content and we'll review it.
+            </div>
+          </div>
+        </div>
+
+        <div class="support-email-box">
+          <div>
+            <div class="support-email-label">Email us anytime</div>
+            <div class="support-email-address">support@mahallify.us</div>
+          </div>
+          <a href="mailto:support@mahallify.us" class="support-email-btn">
+            Send a message
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="cta-section" id="download">
       <div class="section-inner">
@@ -1212,23 +1421,35 @@
 
     <!-- FOOTER -->
     <footer>
-      <div class="footer-inner">
-        <a href="#" class="footer-logo">
-          <div class="footer-logo-icon">
-            <img src="logo.jpg" alt="Mahallify" />
-          </div>
-          <span class="footer-logo-text">Mahallify</span>
-        </a>
-        <div class="footer-links">
-          <a href="mailto:admin@mahallify.us">Contact</a>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="footer-logo">
+            <div class="footer-logo-icon">
+              <img src="logo.jpg" alt="Mahallify" />
+            </div>
+            <span class="footer-logo-text">Mahallify</span>
+          </a>
+          <p class="footer-tagline">
+            Connecting Central Asian diaspora communities across the US and
+            Canada — one neighborhood at a time.
+          </p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Product</div>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#download">Download</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Support</div>
+          <a href="mailto:support@mahallify.us">support@mahallify.us</a>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Use</a>
         </div>
       </div>
-      <div class="footer-inner">
-        <p class="footer-copy">
-          © 2026 Mahallify. All rights reserved. Made with ❤️ for the community.
-        </p>
+      <div class="footer-bottom">
+        <p>© 2026 Mahallify. All rights reserved.</p>
+        <p>Made with ❤️ for the community.</p>
       </div>
     </footer>
   </body>
