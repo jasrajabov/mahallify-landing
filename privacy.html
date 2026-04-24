@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — Mahallify</title>
+    <meta name="description" content="Mahallify Privacy Policy — how we collect, use, and protect your data." />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --primary: #1d4ed8;
+        --primary-dark: #1e3a8a;
+        --primary-deeper: #091740;
+        --bg: #f4f7ff;
+        --surface: #ffffff;
+        --text: #0d1526;
+        --text-secondary: #2e3f6f;
+        --text-tertiary: #647baa;
+        --border: #dfe9ff;
+      }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      /* NAV */
+      nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 100;
+        background: var(--primary-deeper);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      .nav-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+      }
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .nav-logo-icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .nav-logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+      .nav-logo-text { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+      .nav-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255,255,255,0.65);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s;
+      }
+      .nav-back:hover { color: #fff; }
+
+      /* HERO BANNER */
+      .page-banner {
+        background: linear-gradient(160deg, var(--primary-deeper) 0%, var(--primary) 100%);
+        padding: 120px 24px 64px;
+        position: relative;
+        overflow: hidden;
+      }
+      .page-banner::before {
+        content: "";
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+      .page-banner-inner {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+      .page-banner-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.9);
+        padding: 5px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 20px;
+      }
+      .page-banner h1 {
+        font-size: clamp(32px, 4vw, 48px);
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -1px;
+        line-height: 1.1;
+        margin-bottom: 14px;
+      }
+      .page-banner-meta {
+        font-size: 14px;
+        color: rgba(255,255,255,0.55);
+      }
+
+      /* CONTENT */
+      .content-wrap {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 64px 24px 96px;
+      }
+      .content-wrap h2 {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.4px;
+        margin: 48px 0 14px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--border);
+      }
+      .content-wrap h2:first-child { margin-top: 0; }
+      .content-wrap p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 16px;
+      }
+      .content-wrap ul {
+        margin: 0 0 16px 0;
+        padding-left: 0;
+        list-style: none;
+      }
+      .content-wrap ul li {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        padding: 6px 0 6px 24px;
+        position: relative;
+      }
+      .content-wrap ul li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 13px;
+        top: 8px;
+      }
+      .data-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .data-card-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .data-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+      .data-card-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+      .highlight-box {
+        background: linear-gradient(135deg, var(--primary-deeper), var(--primary));
+        border-radius: 16px;
+        padding: 24px 28px;
+        margin: 32px 0;
+        color: rgba(255,255,255,0.85);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+      .highlight-box strong { color: #fff; }
+      .contact-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .contact-box-label { font-size: 13px; color: var(--text-tertiary); font-weight: 600; margin-bottom: 4px; }
+      .contact-box-email { font-size: 18px; font-weight: 800; color: var(--text); }
+      .contact-box a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 22px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        transition: background 0.2s, transform 0.15s;
+        white-space: nowrap;
+      }
+      .contact-box a:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+      /* FOOTER */
+      footer {
+        background: var(--primary-deeper);
+        padding: 40px 24px;
+        color: rgba(255,255,255,0.5);
+      }
+      .footer-bottom {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 13px;
+      }
+      .footer-bottom a {
+        color: rgba(255,255,255,0.5);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .footer-bottom a:hover { color: #fff; }
+      .footer-bottom-links { display: flex; gap: 20px; }
+    </style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav>
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="nav-logo-icon"><img src="logo.jpg" alt="Mahallify" /></div>
+          <span class="nav-logo-text">Mahallify</span>
+        </a>
+        <a href="index.html" class="nav-back">← Back to home</a>
+      </div>
+    </nav>
+
+    <!-- BANNER -->
+    <div class="page-banner">
+      <div class="page-banner-inner">
+        <div class="page-banner-label">Legal</div>
+        <h1>Privacy Policy</h1>
+        <p class="page-banner-meta">Last updated: April 24, 2026 &nbsp;·&nbsp; Effective: April 24, 2026</p>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-wrap">
+
+      <div class="highlight-box">
+        <strong>Your privacy matters to us.</strong> Mahallify is a community platform, and we take seriously the trust you place in us when you share your information. This policy explains what data we collect, why we collect it, and how you can control it.
+      </div>
+
+      <h2>1. Who We Are</h2>
+      <p>Mahallify ("we," "us," or "our") operates the Mahallify mobile application and website at <strong>mahallify.us</strong>. We connect Central Asian diaspora communities across the United States and Canada. Questions about this policy can be directed to <a href="mailto:support@mahallify.us" style="color: var(--primary); font-weight: 600;">support@mahallify.us</a>.</p>
+
+      <h2>2. Information We Collect</h2>
+      <p>We collect information you provide directly and information generated by your use of the app:</p>
+
+      <div class="data-card">
+        <div class="data-card-icon">👤</div>
+        <div>
+          <div class="data-card-title">Account & Profile</div>
+          <div class="data-card-desc">Your name, email address, profile photo, and any bio or contact details you choose to add. This information is visible to other users as part of your public profile.</div>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-icon">📍</div>
+        <div>
+          <div class="data-card-title">Location</div>
+          <div class="data-card-desc">We collect the city, state or province, and country you select. We use this to show you relevant local listings and events. We do not collect or store your precise GPS location without your explicit permission.</div>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-icon">📋</div>
+        <div>
+          <div class="data-card-title">Listings & Posts</div>
+          <div class="data-card-desc">Content you post to the platform — jobs, housing listings, marketplace items, community offers, travel posts, events, and business directory entries — including titles, descriptions, prices, and associated details.</div>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-icon">🖼️</div>
+        <div>
+          <div class="data-card-title">Photos & Media</div>
+          <div class="data-card-desc">Images you upload to your profile or listings. Photos are stored on our servers and may be visible to other users depending on the listing type. We do not scan or sell photos for advertising purposes.</div>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-icon">💬</div>
+        <div>
+          <div class="data-card-title">Messages</div>
+          <div class="data-card-desc">Direct messages you send to other users through the in-app messaging system. Messages are stored to enable the conversation history. We do not read your private messages unless required by law or to investigate a reported violation.</div>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-icon">📱</div>
+        <div>
+          <div class="data-card-title">Device & Usage Data</div>
+          <div class="data-card-desc">Device type, operating system version, app version, and general usage analytics (screens viewed, features used). This helps us fix bugs and improve the app experience.</div>
+        </div>
+      </div>
+
+      <h2>3. How We Use Your Information</h2>
+      <ul>
+        <li>To create and manage your account and display your profile to other users</li>
+        <li>To show you listings and events relevant to your selected location</li>
+        <li>To enable direct messaging between users</li>
+        <li>To display your listings and photos to other community members</li>
+        <li>To send you notifications about messages, listing responses, and platform updates</li>
+        <li>To detect and prevent fraud, abuse, or policy violations</li>
+        <li>To improve app performance, fix bugs, and develop new features</li>
+        <li>To respond to your support requests</li>
+      </ul>
+
+      <h2>4. How We Share Your Information</h2>
+      <p>We do <strong>not</strong> sell your personal data. We share information only in these limited circumstances:</p>
+      <ul>
+        <li><strong>With other users:</strong> Your public profile, listings, and photos are visible to other Mahallify users as part of the platform's core functionality.</li>
+        <li><strong>Service providers:</strong> We use third-party services for hosting, analytics, and push notifications. These providers access data only to perform services on our behalf and are bound by confidentiality obligations.</li>
+        <li><strong>Legal requirements:</strong> We may disclose information if required by law, court order, or to protect the rights and safety of our users or the public.</li>
+        <li><strong>Business transfers:</strong> If Mahallify is acquired or merges with another company, your data may be transferred as part of that transaction. We will notify you before any such transfer.</li>
+      </ul>
+
+      <h2>5. Data Retention</h2>
+      <p>We retain your data for as long as your account is active. When you delete your account, we remove your profile, listings, photos, and messages within 30 days, except where retention is required by law.</p>
+      <p>Some anonymized, aggregated data (e.g., total listing counts) may be retained for analytics purposes and cannot be used to identify you.</p>
+
+      <h2>6. Your Rights & Choices</h2>
+      <ul>
+        <li><strong>Access:</strong> You can view and edit your profile and listings at any time within the app.</li>
+        <li><strong>Deletion:</strong> You can delete your account and all associated data from the app settings, or by emailing us.</li>
+        <li><strong>Data export:</strong> You can request a copy of your data by contacting support@mahallify.us.</li>
+        <li><strong>Notifications:</strong> You can manage push notification preferences in your device settings.</li>
+        <li><strong>Location:</strong> You can update your location at any time within the app. We do not require device GPS access.</li>
+      </ul>
+
+      <h2>7. Children's Privacy</h2>
+      <p>Mahallify is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that a child under 13 has created an account, we will delete it promptly. If you believe a child has provided us their information, please contact us at support@mahallify.us.</p>
+
+      <h2>8. Security</h2>
+      <p>We use industry-standard security measures — including encrypted connections (HTTPS/TLS) and secure data storage — to protect your information. However, no method of transmission over the internet is 100% secure. We encourage you to use a strong, unique password for your account and to report any security concerns to us immediately.</p>
+
+      <h2>9. Third-Party Links</h2>
+      <p>Mahallify may contain links to external websites or services. We are not responsible for the privacy practices of those third parties. We encourage you to review their privacy policies before sharing information with them.</p>
+
+      <h2>10. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we make significant changes, we will notify you via a push notification or a banner in the app. The updated policy will be posted at <strong>mahallify.us/privacy</strong> with a revised "Last updated" date. Continued use of the app after changes are posted constitutes acceptance of the updated policy.</p>
+
+      <h2>11. Contact Us</h2>
+      <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data, please reach out:</p>
+      <div class="contact-box">
+        <div>
+          <div class="contact-box-label">Email</div>
+          <div class="contact-box-email">support@mahallify.us</div>
+        </div>
+        <a href="mailto:support@mahallify.us">Send a message →</a>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-bottom">
+        <span>© 2026 Mahallify. All rights reserved.</span>
+        <div class="footer-bottom-links">
+          <a href="index.html">Home</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Use</a>
+        </div>
+      </div>
+    </footer>
+
+  </body>
+</html>
