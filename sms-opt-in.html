@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMS Opt-In &amp; Consent — Mahallify</title>
+    <meta name="description" content="How Mahallify obtains SMS consent: the exact opt-in workflow and consent language shown to users before any text message is sent." />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --primary: #1d4ed8;
+        --primary-dark: #1e3a8a;
+        --primary-deeper: #091740;
+        --bg: #f4f7ff;
+        --surface: #ffffff;
+        --text: #0d1526;
+        --text-secondary: #2e3f6f;
+        --text-tertiary: #647baa;
+        --border: #dfe9ff;
+        /* app's real login screen palette — keeps the mockup faithful to the app */
+        --app-navy: #0B2A5B;
+        --app-border: #E5E7EB;
+        --app-text: #111827;
+        --app-text-2: #4B5563;
+        --app-text-3: #9CA3AF;
+      }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 100;
+        background: var(--primary-deeper);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      .nav-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+      }
+      .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+      .nav-logo-icon { width: 36px; height: 36px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+      .nav-logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+      .nav-logo-text { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+      .nav-back {
+        display: inline-flex; align-items: center; gap: 6px;
+        color: rgba(255,255,255,0.65); text-decoration: none;
+        font-size: 14px; font-weight: 600; transition: color 0.2s;
+      }
+      .nav-back:hover { color: #fff; }
+
+      .page-banner {
+        background: linear-gradient(160deg, var(--primary-deeper) 0%, var(--primary) 100%);
+        padding: 120px 24px 64px;
+        position: relative;
+        overflow: hidden;
+      }
+      .page-banner::before {
+        content: "";
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+      .page-banner-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+      .page-banner-label {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.9); padding: 5px 14px; border-radius: 999px;
+        font-size: 12px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.8px; margin-bottom: 20px;
+      }
+      .page-banner h1 {
+        font-size: clamp(32px, 4vw, 48px); font-weight: 900; color: #fff;
+        letter-spacing: -1px; line-height: 1.1; margin-bottom: 14px;
+      }
+      .page-banner-meta { font-size: 14px; color: rgba(255,255,255,0.55); }
+
+      .content-wrap { max-width: 900px; margin: 0 auto; padding: 64px 24px 96px; }
+      .content-wrap h2 {
+        font-size: 22px; font-weight: 800; color: var(--text);
+        letter-spacing: -0.4px; margin: 48px 0 14px; padding-bottom: 10px;
+        border-bottom: 2px solid var(--border);
+      }
+      .content-wrap h2:first-child { margin-top: 0; }
+      .content-wrap p { font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 16px; }
+      .content-wrap ul { margin: 0 0 16px 0; padding-left: 0; list-style: none; }
+      .content-wrap ul li {
+        font-size: 15px; color: var(--text-secondary); line-height: 1.8;
+        padding: 6px 0 6px 24px; position: relative;
+      }
+      .content-wrap ul li::before {
+        content: "→"; position: absolute; left: 0; color: var(--primary);
+        font-weight: 700; font-size: 13px; top: 8px;
+      }
+      .content-wrap a { color: var(--primary); font-weight: 600; }
+
+      /* two-column: mockup + explanation */
+      .optin-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 48px;
+        align-items: start;
+        margin: 32px 0;
+      }
+      @media (max-width: 760px) {
+        .optin-grid { grid-template-columns: 1fr; gap: 36px; }
+        .phone-frame { margin: 0 auto; }
+      }
+
+      /* faithful mockup of the app's "Sign in with Phone" screen */
+      .phone-frame {
+        width: 320px;
+        background: #FFFFFF;
+        border: 10px solid #0d1526;
+        border-radius: 40px;
+        padding: 26px 20px 30px;
+        box-shadow: 0 30px 60px -20px rgba(9,23,64,0.45);
+      }
+      .app-logo {
+        width: 56px; height: 56px; border-radius: 14px; overflow: hidden;
+        margin: 6px auto 22px; box-shadow: 0 8px 20px -8px rgba(11,42,91,0.5);
+      }
+      .app-logo img { width: 100%; height: 100%; object-fit: cover; }
+      .app-title { font-size: 19px; font-weight: 800; color: var(--app-text); text-align: center; letter-spacing: -0.3px; }
+      .app-sub { font-size: 13px; color: var(--app-text-2); text-align: center; margin: 6px 0 22px; }
+      .app-phone-row {
+        display: flex; align-items: center;
+        border: 1.5px solid var(--app-border); border-radius: 12px;
+        height: 52px; overflow: hidden; margin-bottom: 16px;
+      }
+      .app-dial {
+        display: flex; align-items: center; gap: 5px;
+        padding: 0 12px; height: 100%;
+        font-size: 14px; font-weight: 600; color: var(--app-text);
+      }
+      .app-dial .chev { color: var(--app-text-3); font-size: 11px; }
+      .app-divider { width: 1.5px; height: 26px; background: var(--app-border); }
+      .app-phone-input { flex: 1; padding: 0 12px; font-size: 15px; color: var(--app-text-3); }
+      .app-consent {
+        font-size: 11px; line-height: 1.65; color: var(--app-text-2);
+        background: #F9FAFB; border: 1px solid var(--app-border);
+        border-radius: 10px; padding: 12px 13px; margin-bottom: 16px;
+      }
+      .app-consent a { color: var(--app-navy); font-weight: 700; text-decoration: none; }
+      .app-consent strong { color: var(--app-text); }
+      .app-btn {
+        background: var(--app-navy); color: #fff; text-align: center;
+        font-size: 16px; font-weight: 700; padding: 16px; border-radius: 12px;
+      }
+      .app-hint { font-size: 11px; color: var(--app-text-3); text-align: center; margin-top: 12px; }
+      .mock-caption {
+        text-align: center; font-size: 12px; color: var(--text-tertiary);
+        font-weight: 600; margin-top: 14px;
+      }
+
+      .sms-box {
+        background: var(--surface); border: 2px solid var(--border);
+        border-radius: 16px; padding: 24px 28px; margin: 24px 0;
+      }
+      .sms-box h3 { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 12px; }
+      .sms-box p { font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.7; }
+      .sms-box p:last-child { margin-bottom: 0; }
+      .sms-box strong { color: var(--text); }
+
+      .verbatim {
+        background: linear-gradient(135deg, var(--primary-deeper), var(--primary));
+        border-radius: 16px; padding: 24px 28px; margin: 24px 0;
+        color: rgba(255,255,255,0.92); font-size: 15px; line-height: 1.8;
+      }
+      .verbatim .lbl {
+        display: block; font-size: 12px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.8px; color: rgba(255,255,255,0.55); margin-bottom: 10px;
+      }
+      .verbatim strong { color: #fff; }
+
+      .legal-links {
+        display: flex; gap: 14px; flex-wrap: wrap; margin: 24px 0 8px;
+      }
+      .legal-links a {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--surface); border: 1px solid var(--border);
+        color: var(--text); text-decoration: none;
+        padding: 12px 20px; border-radius: 10px;
+        font-size: 14px; font-weight: 700; transition: border-color 0.2s, transform 0.15s;
+      }
+      .legal-links a:hover { border-color: var(--primary); transform: translateY(-1px); }
+
+      footer { background: var(--primary-deeper); padding: 40px 24px; color: rgba(255,255,255,0.5); }
+      .footer-bottom {
+        max-width: 1100px; margin: 0 auto; display: flex;
+        justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 12px; font-size: 13px;
+      }
+      .footer-bottom a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+      .footer-bottom a:hover { color: #fff; }
+      .footer-bottom-links { display: flex; gap: 20px; }
+    </style>
+  </head>
+  <body>
+
+    <nav>
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="nav-logo-icon"><img src="logo.jpg" alt="Mahallify" /></div>
+          <span class="nav-logo-text">Mahallify</span>
+        </a>
+        <a href="index.html" class="nav-back">← Back to home</a>
+      </div>
+    </nav>
+
+    <div class="page-banner">
+      <div class="page-banner-inner">
+        <div class="page-banner-label">SMS Consent</div>
+        <h1>SMS Opt-In &amp; Consent</h1>
+        <p class="page-banner-meta">How Mahallify obtains SMS consent · Use case: account sign-in verification (OTP) · Last updated: May 15, 2026</p>
+      </div>
+    </div>
+
+    <div class="content-wrap">
+
+      <h2>The opt-in workflow</h2>
+      <p>
+        Mahallify sends <strong>one type of SMS message only</strong>: a one-time verification
+        code (OTP) used to sign a user into their account. There are no marketing, promotional,
+        or recurring messages of any kind.
+      </p>
+      <p>
+        A user opts in entirely within the Mahallify mobile app. On the login screen the user
+        selects <strong>"Sign in with Phone,"</strong> picks their country code, and enters their
+        mobile number. Directly above the <strong>"Send Code"</strong> button — and separate from
+        acceptance of the Terms of Use or Privacy Policy — the user sees the explicit SMS consent
+        language shown below. Tapping <strong>"Send Code"</strong> is the affirmative opt-in
+        action and triggers exactly one verification SMS to the number entered.
+      </p>
+
+      <div class="optin-grid">
+        <div>
+          <div class="phone-frame" aria-label="Mahallify app — Sign in with Phone screen">
+            <div class="app-logo"><img src="logo.jpg" alt="Mahallify" /></div>
+            <div class="app-title">Sign in with Phone</div>
+            <div class="app-sub">Select your country and enter your number</div>
+
+            <div class="app-phone-row">
+              <div class="app-dial">🇺🇸 +1 <span class="chev">▾</span></div>
+              <div class="app-divider"></div>
+              <div class="app-phone-input">555 123 4567</div>
+            </div>
+
+            <div class="app-consent">
+              By entering your phone number and tapping <strong>"Send Code"</strong>, you agree to
+              receive a one-time verification code (OTP) from Mahallify via SMS text message at the
+              number provided. This is for account sign-in only — Mahallify does <strong>not</strong>
+              send marketing or promotional texts. Message frequency: 1 message per sign-in attempt.
+              Message and data rates may apply. Reply <strong>STOP</strong> to opt out,
+              <strong>HELP</strong> for help. See our <a href="terms.html">Terms</a> and
+              <a href="privacy.html">Privacy Policy</a>.
+            </div>
+
+            <div class="app-btn">Send Code</div>
+            <div class="app-hint">We'll send a 6-digit verification code via SMS.</div>
+          </div>
+          <div class="mock-caption">Exact opt-in screen as shown in the Mahallify app</div>
+        </div>
+
+        <div>
+          <h2 style="margin-top:0;border:none;padding:0;">Exact consent language</h2>
+          <p>This is the verbatim text presented to the user at the point of opt-in, immediately above the "Send Code" button:</p>
+          <div class="verbatim">
+            <span class="lbl">Consent text shown in-app</span>
+            "By entering your phone number and tapping <strong>'Send Code'</strong>, you agree to
+            receive a one-time verification code (OTP) from Mahallify via SMS text message at the
+            number provided. This is for account sign-in only — Mahallify does not send marketing
+            or promotional texts. Message frequency: 1 message per sign-in attempt. Message and
+            data rates may apply. Reply <strong>STOP</strong> to opt out, <strong>HELP</strong>
+            for help. See our Terms and Privacy Policy."
+          </div>
+          <p>
+            Consent is captured by the user's deliberate action of entering their number and
+            tapping "Send Code." It is <strong>not</strong> bundled into acceptance of the Terms
+            of Use or Privacy Policy, which are separate, independently linked documents.
+          </p>
+        </div>
+      </div>
+
+      <h2>SMS program disclosure</h2>
+      <div class="sms-box">
+        <h3>Mahallify SMS Program</h3>
+        <p><strong>Program:</strong> Mahallify one-time verification codes (OTP) for account sign-in.</p>
+        <p><strong>Message type:</strong> Transactional only. One-time passcodes for authentication. No marketing or promotional messages are ever sent.</p>
+        <p><strong>Message frequency:</strong> One message per sign-in attempt. Not recurring.</p>
+        <p><strong>Cost:</strong> Message and data rates may apply.</p>
+        <p><strong>To opt out:</strong> Reply <strong>STOP</strong> to any message to cancel. You will receive a confirmation and no further messages will be sent.</p>
+        <p><strong>For help:</strong> Reply <strong>HELP</strong> or contact us at <a href="mailto:support@mahallify.us">support@mahallify.us</a>.</p>
+        <p>Your phone number is never sold or shared with third parties for marketing purposes.</p>
+      </div>
+
+      <h2>Terms &amp; Privacy</h2>
+      <p>Both documents are publicly accessible and linked directly on the opt-in screen, separately from the SMS consent:</p>
+      <div class="legal-links">
+        <a href="terms.html">📄 Terms of Use</a>
+        <a href="privacy.html">🔒 Privacy Policy</a>
+      </div>
+
+    </div>
+
+    <footer>
+      <div class="footer-bottom">
+        <p>© 2026 Mahallify. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="index.html">Home</a>
+          <a href="terms.html">Terms</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="mailto:support@mahallify.us">Support</a>
+        </div>
+      </div>
+    </footer>
+
+  </body>
+</html>
