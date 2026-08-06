@@ -3,11 +3,19 @@
   "short_name": "Mahallify",
   "description": "The all-in-one community platform for the Central Asian diaspora in the US & Canada.",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ],
-  "theme_color": "#091740",
-  "background_color": "#060e24",
+  "theme_color": "#04060f",
+  "background_color": "#04060f",
   "display": "standalone",
   "start_url": "/"
 }
