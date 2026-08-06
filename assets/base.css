@@ -445,26 +445,23 @@ svg {
   height: 14%;
 }
 
+/* 1:1.90 matches the tallest screen recoverable from the source renders
+   (see tools/extract-screens.py) so every shot fills the frame edge to edge. */
 .device__screen {
   position: relative;
-  aspect-ratio: 9 / 19.5;
+  aspect-ratio: 100 / 190;
   border-radius: calc(var(--w) * 0.145);
   overflow: hidden;
   background: #070c18;
   isolation: isolate;
 }
 .device__screen img {
-  width: 100%;
-  height: auto;
-}
-/* Sources recover ~88% of the screen; the remainder dissolves into the frame. */
-.device__screen::after {
-  content: "";
   position: absolute;
-  inset: auto 0 0 0;
-  height: 22%;
-  background: linear-gradient(to top, #070c18 32%, rgba(7, 12, 24, 0));
-  pointer-events: none;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
 }
 
 .device__island {
@@ -583,9 +580,12 @@ svg {
   background: var(--glass-2);
   cursor: pointer;
   padding: 0;
-  place-items: center;
-  gap: 5px;
+  /* place-items sets justify-items, which flex ignores — the bars would sit at
+     the top of the box. Both axes have to be set explicitly. */
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 .nav__burger span {
   display: block;
@@ -628,16 +628,20 @@ svg {
   transition: opacity 0.3s, visibility 0s;
 }
 .menu a {
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(14px);
+}
+/* the CTA is a .btn — keep the oversized link styling off it, or .menu a would
+   win on specificity and paint white text on the white pill */
+.menu > a:not(.menu__cta) {
   font-family: "Manrope", sans-serif;
   font-size: clamp(26px, 8vw, 38px);
   font-weight: 800;
   letter-spacing: -0.035em;
   color: var(--fg);
-  text-decoration: none;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
-  opacity: 0;
-  transform: translateY(14px);
 }
 .menu.is-open a {
   animation: menuIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -668,8 +672,6 @@ svg {
 }
 .menu__cta {
   margin-top: 22px;
-  border-bottom: 0 !important;
-  font-size: 16px !important;
   align-self: flex-start;
 }
 

@@ -20,14 +20,16 @@ from PIL import Image
 # Colour the fade overlay blends toward, sampled from the caption band.
 OVERLAY = (5, 12, 26)
 
-# Stop inverting the fade once the overlay is this opaque -- beyond it the
-# division amplifies compression noise into visible blotches. 0.88 was the
-# highest cutoff that still came back clean on these sources; it recovers ~88%
-# of the phone screen versus ~78% at 0.62.
-MAX_ALPHA = 0.88
+# Every render fades its phone out before the screen ends, so no source holds a
+# complete 19.5:9 screen -- the overlay is fully opaque by ~2.0x width on the
+# best of them. Rather than leave a dead band at the bottom of the frame, all
+# eight are cut to one aspect that each can actually reach, and the CSS device
+# frame is built to match. 1.90 needs at most alpha 0.93 to recover; 1.95 would
+# push two of the images to 0.96, where inverting the fade turns to noise.
+TARGET_ASPECT = 1.90
 
-# Height of the soft dissolve at the bottom of each crop, in source pixels.
-FEATHER = 90
+# Refuse to invert past this -- a guard in case a future source fades harder.
+MAX_ALPHA = 0.94
 
 OUT_WIDTHS = (920, 460)
 QUALITY = 82
@@ -158,21 +160,6 @@ def unfade(img, box, alphas):
     return crop
 
 
-def feather_bottom(img, px_height):
-    """Fade the last px_height rows out to transparent."""
-    img = img.convert("RGBA")
-    alpha = img.getchannel("A").load()
-    w, h = img.size
-    start = max(0, h - px_height)
-    for y in range(start, h):
-        t = (y - start) / max(1, h - start)
-        # ease-out so the dissolve starts gently
-        v = int(255 * (1 - t * t))
-        for x in range(w):
-            alpha[x, y] = min(alpha[x, y], v)
-    return img
-
-
 def process(src_dir, out_dir):
     manifest = {}
     os.makedirs(out_dir, exist_ok=True)
@@ -195,16 +182,22 @@ def process(src_dir, out_dir):
         y0 = find_screen_top(img, x0, x1)
         alphas = alpha_profile(img, x0, x1, y0)
 
-        # Keep rows while the overlay stays invertible.
-        usable = len(alphas)
-        for i, a in enumerate(alphas):
-            if a > MAX_ALPHA:
-                usable = i
-                break
-        y1 = min(h, y0 + usable)
+        # Every screen is cut to the same aspect so they all fill the frame.
+        rows = round(TARGET_ASPECT * (x1 - x0))
+        if rows > len(alphas) or y0 + rows > h:
+            raise SystemExit(
+                "%s: only %.2f aspect available, need %.2f"
+                % (fname, len(alphas) / (x1 - x0), TARGET_ASPECT)
+            )
+        peak = alphas[rows - 1]
+        if peak > MAX_ALPHA:
+            raise SystemExit(
+                "%s: reaching %.2f aspect needs alpha %.3f (max %.2f)"
+                % (fname, TARGET_ASPECT, peak, MAX_ALPHA)
+            )
+        y1 = y0 + rows
 
         out = unfade(img, (x0, y0, x1, y1), alphas)
-        out = feather_bottom(out, FEATHER)
 
         cw, ch = out.size
         entry = {"caption": caption, "pillar": pillar, "sources": {}}
@@ -226,7 +219,7 @@ def process(src_dir, out_dir):
         manifest[name] = entry
         print(
             f"{fname} -> {name}: screen x {x0}..{x1} y {y0}..{y1} "
-            f"({cw}x{ch}, aspect {ch / cw:.2f})"
+            f"({cw}x{ch}, aspect {ch / cw:.3f}, peak alpha {peak:.3f})"
         )
 
     with open(os.path.join(out_dir, "manifest.json"), "w") as fh:

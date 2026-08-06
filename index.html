@@ -1024,7 +1024,9 @@
         padding: clamp(24px, 3.4vw, 36px);
         background: linear-gradient(120deg, #0b1436, #123063 60%, #0e2650);
       }
-      .mailbox > * {
+      /* must exclude .aurora — promoting it to position:relative would make the
+         decorative blob a real flex item and eat a space-between slot */
+      .mailbox > *:not(.aurora) {
         position: relative;
         z-index: 1;
       }
@@ -1278,7 +1280,7 @@
                     src="screens/ask-feed-460.webp"
                     srcset="screens/ask-feed-460.webp 460w, screens/ask-feed-920.webp 920w"
                     sizes="184px"
-                    width="460" height="876"
+                    width="460" height="874"
                     alt="Ask Mahalla — a feed of questions from neighbors"
                     decoding="async"
                   />
@@ -1293,7 +1295,7 @@
                     src="screens/billboard-home-460.webp"
                     srcset="screens/billboard-home-460.webp 460w, screens/billboard-home-920.webp 920w"
                     sizes="238px"
-                    width="460" height="876"
+                    width="460" height="874"
                     alt="The mahallify Billboard home screen with browse categories"
                     fetchpriority="high"
                     decoding="async"
@@ -1309,7 +1311,7 @@
                     src="screens/circles-feed-460.webp"
                     srcset="screens/circles-feed-460.webp 460w, screens/circles-feed-920.webp 920w"
                     sizes="184px"
-                    width="460" height="876"
+                    width="460" height="874"
                     alt="Circles — a feed from the smaller communities you have joined"
                     decoding="async"
                   />
@@ -1409,14 +1411,14 @@
             <div class="duo">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/ask-feed-460.webp" srcset="screens/ask-feed-460.webp 460w, screens/ask-feed-920.webp 920w" sizes="214px" width="460" height="876" alt="Ask Mahalla feed showing community questions" loading="lazy" decoding="async" />
+                  <img src="screens/ask-feed-460.webp" srcset="screens/ask-feed-460.webp 460w, screens/ask-feed-920.webp 920w" sizes="214px" width="460" height="874" alt="Ask Mahalla feed showing community questions" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
               </div>
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/ask-thread-460.webp" srcset="screens/ask-thread-460.webp 460w, screens/ask-thread-920.webp 920w" sizes="214px" width="460" height="831" alt="An Ask Mahalla question with threaded answers" loading="lazy" decoding="async" />
+                  <img src="screens/ask-thread-460.webp" srcset="screens/ask-thread-460.webp 460w, screens/ask-thread-920.webp 920w" sizes="214px" width="460" height="874" alt="An Ask Mahalla question with threaded answers" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1448,14 +1450,14 @@
             <div class="duo">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/circles-feed-460.webp" srcset="screens/circles-feed-460.webp 460w, screens/circles-feed-920.webp 920w" sizes="214px" width="460" height="876" alt="The Circles feed with your joined circles" loading="lazy" decoding="async" />
+                  <img src="screens/circles-feed-460.webp" srcset="screens/circles-feed-460.webp 460w, screens/circles-feed-920.webp 920w" sizes="214px" width="460" height="874" alt="The Circles feed with your joined circles" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
               </div>
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/circles-discover-460.webp" srcset="screens/circles-discover-460.webp 460w, screens/circles-discover-920.webp 920w" sizes="214px" width="460" height="875" alt="Discovering popular circles to join" loading="lazy" decoding="async" />
+                  <img src="screens/circles-discover-460.webp" srcset="screens/circles-discover-460.webp 460w, screens/circles-discover-920.webp 920w" sizes="214px" width="460" height="874" alt="Discovering popular circles to join" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1487,14 +1489,14 @@
             <div class="duo">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/pros-feed-460.webp" srcset="screens/pros-feed-460.webp 460w, screens/pros-feed-920.webp 920w" sizes="214px" width="460" height="876" alt="The Professionals feed with posts from community members" loading="lazy" decoding="async" />
+                  <img src="screens/pros-feed-460.webp" srcset="screens/pros-feed-460.webp 460w, screens/pros-feed-920.webp 920w" sizes="214px" width="460" height="874" alt="The Professionals feed with posts from community members" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
               </div>
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/pros-path-460.webp" srcset="screens/pros-path-460.webp 460w, screens/pros-path-920.webp 920w" sizes="214px" width="460" height="836" alt="Finding a path to people at a company you want to reach" loading="lazy" decoding="async" />
+                  <img src="screens/pros-path-460.webp" srcset="screens/pros-path-460.webp 460w, screens/pros-path-920.webp 920w" sizes="214px" width="460" height="874" alt="Finding a path to people at a company you want to reach" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1526,14 +1528,14 @@
             <div class="duo">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/billboard-home-460.webp" srcset="screens/billboard-home-460.webp 460w, screens/billboard-home-920.webp 920w" sizes="214px" width="460" height="876" alt="The Billboard home screen with all browse categories" loading="lazy" decoding="async" />
+                  <img src="screens/billboard-home-460.webp" srcset="screens/billboard-home-460.webp 460w, screens/billboard-home-920.webp 920w" sizes="214px" width="460" height="874" alt="The Billboard home screen with all browse categories" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
               </div>
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/billboard-housing-460.webp" srcset="screens/billboard-housing-460.webp 460w, screens/billboard-housing-920.webp 920w" sizes="214px" width="460" height="873" alt="Housing listings filtered by location" loading="lazy" decoding="async" />
+                  <img src="screens/billboard-housing-460.webp" srcset="screens/billboard-housing-460.webp 460w, screens/billboard-housing-920.webp 920w" sizes="214px" width="460" height="874" alt="Housing listings filtered by location" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1586,7 +1588,7 @@
               </p>
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/billboard-housing-460.webp" srcset="screens/billboard-housing-460.webp 460w, screens/billboard-housing-920.webp 920w" sizes="216px" width="460" height="873" alt="Housing listings in the mahallify app" loading="lazy" decoding="async" />
+                  <img src="screens/billboard-housing-460.webp" srcset="screens/billboard-housing-460.webp 460w, screens/billboard-housing-920.webp 920w" sizes="216px" width="460" height="874" alt="Housing listings in the mahallify app" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1700,7 +1702,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/billboard-home-460.webp" srcset="screens/billboard-home-460.webp 460w, screens/billboard-home-920.webp 920w" sizes="248px" width="460" height="876" alt="Billboard home screen with browse categories" loading="lazy" decoding="async" />
+                  <img src="screens/billboard-home-460.webp" srcset="screens/billboard-home-460.webp 460w, screens/billboard-home-920.webp 920w" sizes="248px" width="460" height="874" alt="Billboard home screen with browse categories" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1711,7 +1713,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/billboard-housing-460.webp" srcset="screens/billboard-housing-460.webp 460w, screens/billboard-housing-920.webp 920w" sizes="248px" width="460" height="873" alt="Housing listings with prices and locations" loading="lazy" decoding="async" />
+                  <img src="screens/billboard-housing-460.webp" srcset="screens/billboard-housing-460.webp 460w, screens/billboard-housing-920.webp 920w" sizes="248px" width="460" height="874" alt="Housing listings with prices and locations" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1722,7 +1724,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/ask-feed-460.webp" srcset="screens/ask-feed-460.webp 460w, screens/ask-feed-920.webp 920w" sizes="248px" width="460" height="876" alt="Ask Mahalla feed of neighborhood questions" loading="lazy" decoding="async" />
+                  <img src="screens/ask-feed-460.webp" srcset="screens/ask-feed-460.webp 460w, screens/ask-feed-920.webp 920w" sizes="248px" width="460" height="874" alt="Ask Mahalla feed of neighborhood questions" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1733,7 +1735,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/ask-thread-460.webp" srcset="screens/ask-thread-460.webp 460w, screens/ask-thread-920.webp 920w" sizes="248px" width="460" height="831" alt="A question thread with community answers" loading="lazy" decoding="async" />
+                  <img src="screens/ask-thread-460.webp" srcset="screens/ask-thread-460.webp 460w, screens/ask-thread-920.webp 920w" sizes="248px" width="460" height="874" alt="A question thread with community answers" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1744,7 +1746,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/circles-feed-460.webp" srcset="screens/circles-feed-460.webp 460w, screens/circles-feed-920.webp 920w" sizes="248px" width="460" height="876" alt="Circles feed with trending circles" loading="lazy" decoding="async" />
+                  <img src="screens/circles-feed-460.webp" srcset="screens/circles-feed-460.webp 460w, screens/circles-feed-920.webp 920w" sizes="248px" width="460" height="874" alt="Circles feed with trending circles" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1755,7 +1757,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/circles-discover-460.webp" srcset="screens/circles-discover-460.webp 460w, screens/circles-discover-920.webp 920w" sizes="248px" width="460" height="875" alt="Discover screen showing popular circles" loading="lazy" decoding="async" />
+                  <img src="screens/circles-discover-460.webp" srcset="screens/circles-discover-460.webp 460w, screens/circles-discover-920.webp 920w" sizes="248px" width="460" height="874" alt="Discover screen showing popular circles" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1766,7 +1768,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/pros-feed-460.webp" srcset="screens/pros-feed-460.webp 460w, screens/pros-feed-920.webp 920w" sizes="248px" width="460" height="876" alt="Professionals feed with advice from members" loading="lazy" decoding="async" />
+                  <img src="screens/pros-feed-460.webp" srcset="screens/pros-feed-460.webp 460w, screens/pros-feed-920.webp 920w" sizes="248px" width="460" height="874" alt="Professionals feed with advice from members" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1777,7 +1779,7 @@
             <figure class="shot">
               <div class="device">
                 <div class="device__screen">
-                  <img src="screens/pros-path-460.webp" srcset="screens/pros-path-460.webp 460w, screens/pros-path-920.webp 920w" sizes="248px" width="460" height="836" alt="Searching for a path into a company" loading="lazy" decoding="async" />
+                  <img src="screens/pros-path-460.webp" srcset="screens/pros-path-460.webp 460w, screens/pros-path-920.webp 920w" sizes="248px" width="460" height="874" alt="Searching for a path into a company" loading="lazy" decoding="async" />
                   <span class="device__glare"></span>
                 </div>
                 <span class="device__island"></span>
@@ -1992,21 +1994,21 @@
         <div class="cta__peek" aria-hidden="true">
           <div class="device">
             <div class="device__screen">
-              <img src="screens/circles-discover-460.webp" width="460" height="875" alt="" loading="lazy" decoding="async" />
+              <img src="screens/circles-discover-460.webp" width="460" height="874" alt="" loading="lazy" decoding="async" />
               <span class="device__glare"></span>
             </div>
             <span class="device__island"></span>
           </div>
           <div class="device">
             <div class="device__screen">
-              <img src="screens/billboard-home-460.webp" width="460" height="876" alt="" loading="lazy" decoding="async" />
+              <img src="screens/billboard-home-460.webp" width="460" height="874" alt="" loading="lazy" decoding="async" />
               <span class="device__glare"></span>
             </div>
             <span class="device__island"></span>
           </div>
           <div class="device">
             <div class="device__screen">
-              <img src="screens/pros-feed-460.webp" width="460" height="876" alt="" loading="lazy" decoding="async" />
+              <img src="screens/pros-feed-460.webp" width="460" height="874" alt="" loading="lazy" decoding="async" />
               <span class="device__glare"></span>
             </div>
             <span class="device__island"></span>
