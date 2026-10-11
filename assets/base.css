@@ -893,7 +893,7 @@ p.i18n-note {
 .prose {
   max-width: 820px;
   margin-inline: auto;
-  padding: 0 0 clamp(56px, 8vw, 96px);
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 .prose h2 {
   font-size: clamp(21px, 2.8vw, 28px);
