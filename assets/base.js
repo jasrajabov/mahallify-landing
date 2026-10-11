@@ -30,7 +30,12 @@
       menu.classList.toggle("is-open", open);
       menu.setAttribute("aria-hidden", String(!open));
       document.body.classList.toggle("is-locked", open);
-      burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      burger.setAttribute(
+        "aria-label",
+        open
+          ? burger.dataset.labelClose || "Close menu"
+          : burger.dataset.labelOpen || "Open menu"
+      );
 
       if (open) {
         lastFocus = document.activeElement;
@@ -82,8 +87,12 @@
     });
 
     // A resize past the breakpoint should not leave the page scroll-locked.
+    // The breakpoint differs per language, so go by whether the burger shows.
     window.addEventListener("resize", function () {
-      if (window.innerWidth > 900 && menu.classList.contains("is-open")) {
+      if (
+        menu.classList.contains("is-open") &&
+        getComputedStyle(burger).display === "none"
+      ) {
         setMenu(false);
       }
     });
