@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mahallify.app",
+      "sha256_cert_fingerprints": [
+        "60:8D:94:04:FA:82:F7:74:25:8A:20:F6:E0:7A:F8:19:33:2F:4D:99:D4:B9:8B:A1:69:49:59:73:42:9C:8E:B3"
+      ]
+    }
+  }
+]
