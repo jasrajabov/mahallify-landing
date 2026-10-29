@@ -67,6 +67,8 @@ const DEV = {
 const EXPO_GO_SERVER =
   /^exps?:\/\/(localhost|127(\.\d{1,3}){3}|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2}|[a-z0-9-]+(\.[a-z0-9-]+)*\.exp\.direct)(:\d{1,5})?$/i;
 
+const has = (obj, key) => typeof key === 'string' && Object.hasOwn(obj, key);
+
 function expoGoOf(url, db) {
   if (db === PROD) return null;
   const exp = url.searchParams.get('exp');
@@ -101,7 +103,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // `+native-intent` know `/p/`, and on any other one Open landed on "This
 // screen doesn't exist".
 const OFFER_COLS =
-  'id,title,description,post_type,price,price_type,condition,city,state,travel_destination,travel_destination_city,travel_departure_date,travel_return_date,status,is_active,availability,user_id,business_id,created_at';
+  'id,title,description,post_type,price,price_type,condition,city,state,travel_direction,travel_destination,travel_destination_city,travel_departure_date,travel_return_date,status,is_active,availability,user_id,business_id,created_at';
 const KINDS = {
   housing: {
     table: 'housing',
@@ -122,7 +124,7 @@ const KINDS = {
   deal: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#34d399' },
   event: {
     table: 'events',
-    cols: 'id,title,description,start_date,end_date,timezone,recurrence,ends_at,venue,event_format,price,price_type,city,state,status,is_active,user_id,organization_id,created_at',
+    cols: 'id,title,description,start_date,end_date,timezone,recurrence,recurrence_interval,recurrence_weekdays,recurrence_until,ends_at,venue,event_format,price,price_type,city,state,status,is_active,user_id,organization_id,created_at',
     photos: 'event',
     screen: 'event',
     accent: '#f472b6',
@@ -181,6 +183,8 @@ const COPY = {
     negotiable: 'Negotiable',
     answers: n => (n === 1 ? '1 answer' : `${n} answers`),
     repeats: 'Repeats',
+    trip: { to: p => `Traveling to ${p}`, from: p => `Traveling from ${p}`, lookingTo: p => `Looking for traveler to ${p}`, lookingFrom: p => `Looking for traveler from ${p}` },
+    openExpo: 'Open in Expo Go',
     studio: 'Studio',
     beds: n => (n === 1 ? '1 bedroom' : `${n} bedrooms`),
     baths: n => (n === 1 ? '1 bathroom' : `${n} bathrooms`),
@@ -221,6 +225,8 @@ const COPY = {
     negotiable: 'Договорная',
     answers: n => `Ответов: ${n}`,
     repeats: 'Повторяется',
+    trip: { to: p => `Едет в ${p}`, from: p => `Едет из ${p}`, lookingTo: p => `Ищу путешественника в ${p}`, lookingFrom: p => `Ищу путешественника из ${p}` },
+    openExpo: 'Открыть в Expo Go',
     studio: 'Студия',
     beds: n => `Спален: ${n}`,
     baths: n => `Ванных: ${n}`,
@@ -261,6 +267,8 @@ const COPY = {
     negotiable: 'Kelishiladi',
     answers: n => `${n} ta javob`,
     repeats: 'Takrorlanadi',
+    trip: { to: p => `${p} ga ketmoqda`, from: p => `${p} dan kelmoqda`, lookingTo: p => `${p} ga sayohatchi qidirilmoqda`, lookingFrom: p => `${p} dan sayohatchi qidirilmoqda` },
+    openExpo: 'Expo Go’da ochish',
     studio: 'Studiya',
     beds: n => `${n} ta yotoqxona`,
     baths: n => `${n} ta hammom`,
@@ -282,14 +290,15 @@ const COPY = {
   },
 };
 const LOCALES = { en: 'en-US', ru: 'ru-RU', uz: 'uz-Latn-UZ' };
+const OG_LOCALES = { en: 'en_US', ru: 'ru_RU', uz: 'uz_UZ' };
 
 function pickLang(request, url) {
   const q = url.searchParams.get('lang');
-  if (q && COPY[q]) return q;
+  if (has(COPY, q)) return q;
   const header = (request.headers.get('accept-language') || '').toLowerCase();
   for (const part of header.split(',')) {
     const code = part.trim().slice(0, 2);
-    if (COPY[code]) return code;
+    if (has(COPY, code)) return code;
   }
   return 'en';
 }
@@ -352,7 +361,10 @@ const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'P
 
 function money(n, lang, state) {
   const sym = CANADA.has(String(state || '').toUpperCase()) ? 'CA$' : '$';
-  return sym + Math.round(Number(n)).toLocaleString(LOCALES[lang]);
+  const v = Number(n);
+  // $18.50/hr is not $19/hr: whole amounts print whole, the rest to the cent.
+  const digits = Number.isInteger(v) ? 0 : 2;
+  return sym + v.toLocaleString(LOCALES[lang], { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
 function placeOf(row) {
@@ -382,19 +394,94 @@ function postedOn(s, lang) {
   return new Intl.DateTimeFormat(LOCALES[lang], { month: 'short', day: 'numeric', timeZone: 'America/New_York' }).format(new Date(t));
 }
 
-/** An event's time in ITS OWN zone, as a range when it has an end. */
+// ── Event times, on the event's own WALL CLOCK ──
+//
+// An instant is turned into the event zone's wall-clock time, held as a Date
+// whose UTC fields ARE that wall clock. Weekday and day arithmetic on it is
+// then the event's own (a Worker runs in UTC, and stepping real instants by
+// 7 × 24h drifts an hour across a DST change), and it prints with timeZone
+// 'UTC'. The series rules mirror the app's src/lib/eventRecurrence.ts.
+
+const DAY = 86400000;
+const DEFAULT_SPAN = 4 * 3600000;
+const MAX_OCCURRENCES = 400;
+
+function wallClock(instant, tz) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(instant)) p[x.type] = x.value;
+  return new Date(Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second));
+}
+
+function isRecurring(row) {
+  return (row.recurrence === 'weekly' || row.recurrence === 'monthly') && !!row.recurrence_until;
+}
+
+/** The nth weekday of a month at `time`'s clock; nth 5 is the LAST one. */
+function nthWeekdayIn(y, m, weekday, nth, time) {
+  const at = d => new Date(Date.UTC(y, m, d, time.getUTCHours(), time.getUTCMinutes(), time.getUTCSeconds()));
+  if (nth >= 5) {
+    const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    const lastDow = new Date(Date.UTC(y, m, last)).getUTCDay();
+    return at(last - ((lastDow - weekday + 7) % 7));
+  }
+  const firstDow = new Date(Date.UTC(y, m, 1)).getUTCDay();
+  return at(1 + ((weekday - firstDow + 7) % 7) + (nth - 1) * 7);
+}
+
+/** The occurrence on screen: a one-off as it is, a series' current or next
+ *  occurrence (its first once the series is over). Wall-clock dates. */
+function displayOccurrence(row, tz) {
+  const first = wallClock(new Date(row.start_date), tz);
+  const span = row.end_date ? Math.max(0, Date.parse(row.end_date) - Date.parse(row.start_date)) : DEFAULT_SPAN;
+  const one = start => ({ start, end: row.end_date ? new Date(start.getTime() + span) : null });
+  if (!isRecurring(row)) return one(first);
+  const now = wallClock(new Date(), tz).getTime();
+  const u = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(row.recurrence_until));
+  const stop = u ? Date.UTC(+u[1], +u[2] - 1, +u[3] + 1) : first.getTime();
+  const live = start => start.getTime() + span > now;
+  let produced = 0;
+  if (row.recurrence === 'weekly') {
+    const interval = Math.max(1, row.recurrence_interval || 1);
+    const startDow = first.getUTCDay();
+    const offsets = [...new Set((row.recurrence_weekdays || []).map(wd => (wd - startDow + 7) % 7))].sort((a, b) => a - b);
+    const firstWeek = offsets.includes(0) ? offsets : [0, ...offsets];
+    for (let week = 0; produced < MAX_OCCURRENCES; week += interval) {
+      const weekStart = first.getTime() + week * 7 * DAY;
+      if (weekStart >= stop) break;
+      for (const off of week === 0 ? firstWeek : offsets) {
+        const start = new Date(weekStart + off * DAY);
+        if (start.getTime() >= stop) break;
+        produced++;
+        if (live(start)) return one(start);
+      }
+    }
+    return one(first);
+  }
+  const nth = Math.ceil(first.getUTCDate() / 7);
+  const weekday = first.getUTCDay();
+  for (let k = 0; produced < MAX_OCCURRENCES; k++) {
+    const start = k === 0 ? first : nthWeekdayIn(first.getUTCFullYear(), first.getUTCMonth() + k, weekday, nth, first);
+    if (start.getTime() >= stop) break;
+    produced++;
+    if (live(start)) return one(start);
+  }
+  return one(first);
+}
+
+/** An event's time in ITS OWN zone, as a range when it has an end. A series
+ *  shows its current or next occurrence, never a first date long past. */
 function eventWhen(row, lang) {
   if (!row.start_date) return null;
-  const opts = {
-    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
-    timeZone: row.timezone || 'America/New_York',
-  };
   try {
-    const fmt = new Intl.DateTimeFormat(LOCALES[lang], opts);
-    const start = new Date(row.start_date);
-    const end = row.end_date ? new Date(row.end_date) : null;
+    const { start, end } = displayOccurrence(row, row.timezone || 'America/New_York');
+    const fmt = new Intl.DateTimeFormat(LOCALES[lang], {
+      weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC',
+    });
     const text = end && end > start && fmt.formatRange ? fmt.formatRange(start, end) : fmt.format(start);
-    return row.recurrence && row.recurrence !== 'none' ? `${COPY[lang].repeats} · ${text}` : text;
+    return isRecurring(row) ? `${COPY[lang].repeats} · ${text}` : text;
   } catch {
     return null;
   }
@@ -446,8 +533,11 @@ function factsOf(kind, row, lang) {
       add(L.where, where);
       break;
     case 'travel': {
-      const to = row.travel_destination_city || row.travel_destination;
-      lead = to ? [row.city, to].filter(Boolean).join(' → ') : null;
+      // An INBOUND trip comes from abroad to the poster's city: the far end
+      // is where it starts.
+      const far = row.travel_destination_city || row.travel_destination;
+      const ends = row.travel_direction === 'inbound' ? [far, row.city] : [row.city, far];
+      lead = far ? ends.filter(Boolean).join(' → ') : null;
       add(L.departs, dateOnly(row.travel_departure_date, lang));
       add(L.returns, dateOnly(row.travel_return_date, lang));
       add(L.where, where);
@@ -502,10 +592,38 @@ function excerptOf(kind, row, max = 420) {
   return (space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s.,;:–—-]+$/, '') + '…';
 }
 
+/** A trip with no title of its own is named from its fields, as the app's
+ *  `travelTitle` names it (src/utils/travel.ts), in the reader's language. */
+function travelTitle(row, lang) {
+  const country = String(row.travel_destination || '').trim();
+  const city = String(row.travel_destination_city || '').trim();
+  const place = city && country ? `${city}, ${country}` : city || country;
+  if (!place) return null;
+  const looking = row.post_type === 'delivery_wanted';
+  const inbound = row.travel_direction === 'inbound';
+  const t = COPY[lang].trip;
+  return (looking ? (inbound ? t.lookingFrom : t.lookingTo) : inbound ? t.from : t.to)(place);
+}
+
+/** Today's calendar date ("2026-10-29") where the continent's day ends LAST,
+ *  so a date-only deadline is not called over while it is still that day
+ *  for any reader in the US or Canada. */
+function todayWest() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+}
+
 function statusOf(kind, row, lang) {
-  const over = kind === 'event' ? row.ends_at : kind === 'charity' ? row.expires_at : null;
-  if (over && Date.parse(over) <= Date.now()) return COPY[lang].ended;
-  return row.availability === 'gone' ? COPY[lang].gone : null;
+  const c = COPY[lang];
+  if (kind === 'event' && row.ends_at && Date.parse(row.ends_at) <= Date.now()) return c.ended;
+  if (kind === 'charity') {
+    // `deadline` is the organizer's stated end, the only one a reader sees;
+    // `expires_at` is the board's housekeeping window — past it the campaign
+    // is off the board, which is "no longer available", not "ended".
+    const deadline = /^\d{4}-\d{2}-\d{2}/.exec(String(row.deadline || ''))?.[0];
+    if (deadline && deadline < todayWest()) return c.ended;
+    if (row.expires_at && Date.parse(row.expires_at) <= Date.now()) return c.gone;
+  }
+  return row.availability === 'gone' ? c.gone : null;
 }
 
 // ── The page ─────────────────────────────────────────────────────────────────
@@ -530,7 +648,9 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
   const accent = src?.accent || '#4f7dff';
-  const title = found ? String(post.row.title || '').trim() || c.kinds[kind] : c.missingTitle;
+  const title = found
+    ? String(post.row.title || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || c.kinds[kind]
+    : c.missingTitle;
   const { lead, facts } = found ? factsOf(kind, post.row, lang) : { lead: null, facts: [] };
   const status = found ? statusOf(kind, post.row, lang) : null;
   const excerpt = found ? excerptOf(kind, post.row) : null;
@@ -575,7 +695,7 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
 ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(appUrl)}" />` : ''}
 <meta property="og:site_name" content="Mahallify" />
 <meta property="og:type" content="article" />
-<meta property="og:locale" content="${LOCALES[lang].replace('-', '_')}" />
+<meta property="og:locale" content="${OG_LOCALES[lang]}" />
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(ogDescription)}" />
 <meta property="og:image" content="${esc(image)}" />
@@ -680,7 +800,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
   </article>`
   }
   <div class="actions">
-    ${canOpen ? `<a class="btn primary" href="${esc(openHref)}">${esc(c.open)}</a>` : ''}
+    ${canOpen ? `<a class="btn primary" href="${esc(openHref)}">${esc(expoGo ? c.openExpo : c.open)}</a>` : ''}
     ${stores
       .map(([href, label, glyph]) => `<a class="btn ${canOpen ? 'secondary' : 'primary'}" href="${href}">${glyph}${esc(c.get)} · ${esc(label)}</a>`)
       .join('\n    ')}
@@ -707,7 +827,7 @@ export async function onRequestGet({ request, params }) {
 
   let post = null;
   let failed = false;
-  if (KINDS[kind] && UUID.test(id)) {
+  if (has(KINDS, kind) && UUID.test(id)) {
     try {
       post = await readPost(db, kind, id);
     } catch {
@@ -715,7 +835,7 @@ export async function onRequestGet({ request, params }) {
     }
   }
 
-  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform });
+  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
