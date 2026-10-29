@@ -40,7 +40,8 @@ const PROD = {
 };
 
 // The DEV project, read only by the `dev` branch's preview deployment
-// (dev.mahallify-landing.pages.dev) — where the app's dev builds point their
+// (dev.mahallify.us, or its alias dev.mahallify-landing.pages.dev) — where the
+// app's dev builds point their
 // shared links (EXPO_PUBLIC_SITE_URL in its .env.local) — so a post that
 // exists only in dev still previews. Chosen by HOST rather than by a Pages
 // variable because the dashboard offers no Preview-only variables; the key is
@@ -72,11 +73,15 @@ function expoGoOf(url, db) {
   return exp && EXPO_GO_SERVER.test(exp) ? exp : null;
 }
 
+// The dev site's addresses: its own subdomain (a CNAME to the `dev` branch's
+// alias), and that alias itself. Everything else — mahallify.us, www, the
+// production pages.dev — is production.
+function isDevHost(host) {
+  return host === 'dev.mahallify.us' || (host.startsWith('dev.') && host.endsWith('.pages.dev'));
+}
+
 function dbOf(url) {
-  if (url.hostname.startsWith('dev.') && url.hostname.endsWith('.pages.dev')) {
-    return { ...DEV, site: url.origin };
-  }
-  return PROD;
+  return isDevHost(url.hostname) ? { ...DEV, site: url.origin } : PROD;
 }
 
 const APP_STORE = 'https://apps.apple.com/app/id6762940667';
