@@ -32,15 +32,20 @@ const PROD = {
   site: 'https://mahallify.us',
 };
 
-// A PREVIEW deployment (any branch but main — `dev` is
-// dev.mahallify-landing.pages.dev) reads the DEV project instead, set as
-// SUPABASE_URL and SUPABASE_KEY in the Pages project's Preview variables, so a
-// link shared from a dev build (the app's EXPO_PUBLIC_SITE_URL) previews a
-// post that exists only there. Both or neither: a URL without its own key, or
-// the reverse, falls back to production whole rather than mixing the two.
-function dbOf(env, url) {
-  if (env && env.SUPABASE_URL && env.SUPABASE_KEY) {
-    return { url: env.SUPABASE_URL.replace(/\/+$/, ''), key: env.SUPABASE_KEY, site: url.origin };
+// The DEV project, read only by the `dev` branch's preview deployment
+// (dev.mahallify-landing.pages.dev) — where the app's dev builds point their
+// shared links (EXPO_PUBLIC_SITE_URL in its .env.local) — so a post that
+// exists only in dev still previews. Chosen by HOST rather than by a Pages
+// variable because the dashboard offers no Preview-only variables; the key is
+// the dev project's public anon key, as public as the one above.
+const DEV = {
+  url: 'https://ysbkniochkmgjpaubxgw.supabase.co',
+  key: 'sb_publishable_KDLNjzvuppFO7-u-ZFsagw_nIOAPT0p',
+};
+
+function dbOf(url) {
+  if (url.hostname.startsWith('dev.') && url.hostname.endsWith('.pages.dev')) {
+    return { ...DEV, site: url.origin };
   }
   return PROD;
 }
@@ -368,13 +373,13 @@ ${found ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-ar
 </html>`;
 }
 
-export async function onRequestGet({ request, params, env }) {
+export async function onRequestGet({ request, params }) {
   const url = new URL(request.url);
   const lang = pickLang(request, url);
   const platform = platformOf(request);
   const kind = String(params.kind || '');
   const id = String(params.id || '').toLowerCase();
-  const db = dbOf(env, url);
+  const db = dbOf(url);
   const canonical = `${db.site}/p/${kind}/${id}`;
 
   let post = null;
