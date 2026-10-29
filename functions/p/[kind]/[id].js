@@ -584,24 +584,26 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg:#04060f; --bg2:#090e1d; --card:#0c1226; --raise:rgba(255,255,255,.045);
     --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
     --ink:#f3f6ff; --ink2:rgba(223,232,255,.72); --ink3:rgba(186,202,240,.55);
-    --brand:#22d3ee; --brandInk:#03222a; --accent:${accent};
+    --brand:#22d3ee; --brandInk:#03222a; --brandMark:#45a8d2; --accent:${accent};
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  html,body { background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+  html,body { background:var(--bg); color:var(--ink); font-family:Onest,system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
   body { min-height:100vh; background:
     radial-gradient(900px 420px at 50% -120px, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
     var(--bg); }
   a { color:inherit; }
   .wrap { max-width:520px; margin:0 auto; padding:max(16px, env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
   .top { display:flex; align-items:center; justify-content:space-between; gap:12px; height:52px; margin-bottom:12px; }
-  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; font-family:Manrope,Inter,sans-serif; font-weight:800; font-size:19px; letter-spacing:-.02em; }
-  .brand img { width:30px; height:30px; border-radius:8px; }
+  /* The app's lockup (see assets/base.css): ratios off a 34pt wordmark. */
+  .brand { --word:19px; display:flex; align-items:center; gap:calc(var(--word) * 10 / 34); text-decoration:none; }
+  .brand img { flex:none; width:calc(var(--word) * 88 / 34); height:calc(var(--word) * 88 / 34); margin:calc(var(--word) * -22 / 34); }
+  .brand span { font-weight:700; font-size:var(--word); line-height:1; letter-spacing:-.025em; padding-top:calc(var(--word) * 4 / 34); color:var(--brandMark); }
   .top .get { font-size:14px; font-weight:600; text-decoration:none; color:var(--ink2); padding:8px 12px; border-radius:999px; border:1px solid var(--line); background:var(--raise); }
   .card { background:linear-gradient(180deg, var(--card), var(--bg2)); border:1px solid var(--line); border-radius:24px; overflow:hidden;
     box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 30px 70px -36px rgba(0,0,0,.95); }
@@ -612,7 +614,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
   .kind { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
   .kind::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
   .status { font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:rgba(255,255,255,.09); color:var(--ink); }
-  h1 { margin-top:10px; font-family:Manrope,Inter,sans-serif; font-size:clamp(24px, 6.4vw, 30px); line-height:1.18; letter-spacing:-.025em; font-weight:800; overflow-wrap:anywhere; }
+  h1 { margin-top:10px; font-size:clamp(24px, 6.4vw, 30px); line-height:1.18; letter-spacing:-.025em; font-weight:800; overflow-wrap:anywhere; }
   .lead { margin-top:8px; font-size:20px; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
   .facts { margin-top:18px; border-top:1px solid var(--line); }
   .fact { display:grid; grid-template-columns:minmax(88px, 32%) 1fr; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
@@ -625,7 +627,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
   .by b { color:var(--ink); font-weight:600; }
   .more { margin-top:16px; font-size:13px; color:var(--ink3); }
   .missing { padding:36px 22px 30px; text-align:center; }
-  .missing .glyph { width:56px; height:56px; margin:0 auto 16px; border-radius:16px; opacity:.9; }
+  .missing .glyph { display:block; width:112px; height:112px; margin:-24px auto -8px; }
   .missing h1 { font-size:24px; margin-top:0; }
   .missing p { margin-top:8px; color:var(--ink2); font-size:15px; line-height:1.5; }
   .actions { display:grid; gap:10px; margin-top:18px; }
@@ -642,7 +644,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <body>
 <div class="wrap">
   <header class="top">
-    <a class="brand" href="/"><img src="/icon-192.png" alt="" width="30" height="30" />mahallify</a>
+    <a class="brand" href="/"><img src="/assets/brand-mark.png" alt="" width="49" height="49" /><span>mahallify</span></a>
     <a class="get" href="/get">${esc(c.getShort)}</a>
   </header>
   <main>
@@ -667,7 +669,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
     </div>
   </article>`
       : `<article class="card missing">
-    <img class="glyph" src="/icon-192.png" alt="" width="56" height="56" />
+    <img class="glyph" src="/assets/brand-mark.png" alt="" width="112" height="112" />
     <h1>${esc(title)}</h1>
     <p>${esc(c.missingBody)}</p>
   </article>`

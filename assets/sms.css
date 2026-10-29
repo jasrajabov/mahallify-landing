@@ -28,7 +28,7 @@
   object-fit: cover;
 }
 .app-title {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 19px;
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -137,7 +137,7 @@
   left: 18px;
   background: var(--ink-900);
   padding: 0 9px;
-  font-family: "Inter", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 10.5px;
   font-weight: 800;
   text-transform: uppercase;

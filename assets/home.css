@@ -333,7 +333,7 @@
   color: var(--fg-2);
 }
 .tab b {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 15.5px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -504,7 +504,7 @@
 }
 .stats b {
   display: block;
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: clamp(34px, 5vw, 52px);
   font-weight: 800;
   letter-spacing: -0.045em;
@@ -770,7 +770,7 @@
   height: 54px;
   margin: 0 auto 20px;
   border-radius: 50%;
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 19px;
   font-weight: 800;
   color: #fff;
@@ -995,7 +995,7 @@
   margin-bottom: 6px;
 }
 .mailbox b {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: clamp(18px, 2.6vw, 24px);
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -1092,7 +1092,7 @@
   transform: none;
 }
 .dock b {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 14.5px;
   font-weight: 800;
   letter-spacing: -0.02em;

@@ -34,6 +34,7 @@
   --fg-4: rgba(170, 188, 232, 0.38);
 
   /* brand */
+  --brand-mark: #45a8d2; /* the app's dark-palette brandMark: mark + wordmark */
   --brand: #4f7dff;
   --brand-2: #38bdf8;
   --violet: #a78bfa;
@@ -84,7 +85,7 @@ html {
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Onest", system-ui, -apple-system, sans-serif;
   background: var(--ink-900);
   color: var(--fg);
   line-height: 1.6;
@@ -109,7 +110,7 @@ h1,
 h2,
 h3,
 .display {
-  font-family: "Manrope", "Inter", sans-serif;
+  font-family: "Onest", system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.06;
@@ -517,32 +518,44 @@ svg {
 }
 
 .nav__brand {
+  --word: 18px;
+}
+
+/* The app's lockup (BrandLockup): the mark beside the wordmark, both in the
+   dark palette's brand ink, every dimension a ratio of the wordmark's size
+   off the design's 34pt original — an 88pt mark, a 10pt gap, a 4pt optical
+   nudge. The mark PNG is half transparent padding, so its box takes a
+   quarter back on every side; the padding overlaps, it is never cropped. */
+.nav__brand,
+.foot__brand a {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(var(--word) * 10 / 34);
   text-decoration: none;
   flex: none;
 }
-.nav__mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
+.nav__mark,
+.foot__brand img {
+  display: block;
   flex: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  width: calc(var(--word) * 88 / 34);
+  height: calc(var(--word) * 88 / 34);
+  margin: calc(var(--word) * -22 / 34);
 }
 .nav__mark img {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
-.nav__word {
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  color: var(--fg);
+.nav__word,
+.foot__brand b {
+  font-family: "Onest", sans-serif;
+  font-size: var(--word);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  padding-top: calc(var(--word) * 4 / 34);
+  color: var(--brand-mark);
 }
 
 .nav__links {
@@ -635,7 +648,7 @@ svg {
 /* the CTA is a .btn — keep the oversized link styling off it, or .menu a would
    win on specificity and paint white text on the white pill */
 .menu > a:not(.menu__cta) {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: clamp(26px, 8vw, 38px);
   font-weight: 800;
   letter-spacing: -0.035em;
@@ -775,25 +788,9 @@ p.i18n-note {
   margin-bottom: 44px;
 }
 .foot__brand a {
+  --word: 17px;
   display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
   margin-bottom: 14px;
-}
-.foot__brand img {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: #fff;
-  object-fit: cover;
-}
-.foot__brand b {
-  font-family: "Manrope", sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  color: var(--fg);
 }
 .foot__tag {
   font-size: 14px;
@@ -807,7 +804,7 @@ p.i18n-note {
   gap: 11px;
 }
 .foot__col h3 {
-  font-family: "Inter", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -1011,7 +1008,7 @@ p.i18n-note {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.015em;
@@ -1052,7 +1049,7 @@ p.i18n-note {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.015em;
@@ -1104,7 +1101,7 @@ p.i18n-note {
   min-width: 0;
 }
 .data-card-title {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.015em;
@@ -1143,7 +1140,7 @@ p.i18n-note {
 }
 .contact-box b,
 .contact-box-email {
-  font-family: "Manrope", sans-serif;
+  font-family: "Onest", sans-serif;
   font-size: clamp(16px, 2.2vw, 19px);
   font-weight: 800;
   letter-spacing: -0.02em;
