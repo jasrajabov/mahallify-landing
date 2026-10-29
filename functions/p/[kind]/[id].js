@@ -23,11 +23,27 @@
 // tables let anyone read pending and rejected rows. A row that fails either
 // reads as "no longer available", the same as one that is gone.
 
-const SUPABASE_URL = 'https://clqvjgvvctxiddygsrdc.supabase.co';
-// The PUBLISHABLE key — the same one every installed app carries. RLS is the
-// gate, never this key.
-const SUPABASE_KEY = 'sb_publishable_obdgsQkXsclyCmilF1ngKQ_heV0__iu';
-const PUBLIC_OBJECTS = `${SUPABASE_URL}/storage/v1/object/public/`;
+// PRODUCTION, and the only database mahallify.us ever reads. The key is the
+// PUBLISHABLE one — the same one every installed app carries. RLS is the gate,
+// never this key.
+const PROD = {
+  url: 'https://clqvjgvvctxiddygsrdc.supabase.co',
+  key: 'sb_publishable_obdgsQkXsclyCmilF1ngKQ_heV0__iu',
+  site: 'https://mahallify.us',
+};
+
+// A PREVIEW deployment (any branch but main — `dev` is
+// dev.mahallify-landing.pages.dev) reads the DEV project instead, set as
+// SUPABASE_URL and SUPABASE_KEY in the Pages project's Preview variables, so a
+// link shared from a dev build (the app's EXPO_PUBLIC_SITE_URL) previews a
+// post that exists only there. Both or neither: a URL without its own key, or
+// the reverse, falls back to production whole rather than mixing the two.
+function dbOf(env, url) {
+  if (env && env.SUPABASE_URL && env.SUPABASE_KEY) {
+    return { url: env.SUPABASE_URL.replace(/\/+$/, ''), key: env.SUPABASE_KEY, site: url.origin };
+  }
+  return PROD;
+}
 
 const APP_STORE = 'https://apps.apple.com/app/id6762940667';
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.mahallify.app';
@@ -141,23 +157,24 @@ function pickLang(request, url) {
 
 // ── Reading the post ─────────────────────────────────────────────────────────
 
-async function rest(path) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}` },
+async function rest(db, path) {
+  const res = await fetch(`${db.url}/rest/v1/${path}`, {
+    headers: { apikey: db.key, authorization: `Bearer ${db.key}` },
     cf: { cacheTtl: 60, cacheEverything: true },
   });
   if (!res.ok) throw new Error(`rest ${res.status}`);
   return res.json();
 }
 
-async function readPost(kind, id) {
+async function readPost(db, kind, id) {
   const src = KINDS[kind];
-  const rows = await rest(`${src.table}?select=${src.cols}&id=eq.${id}&limit=1`);
+  const rows = await rest(db, `${src.table}?select=${src.cols}&id=eq.${id}&limit=1`);
   const row = rows[0];
   if (!row || row.status !== 'approved' || row.is_active === false) return null;
   let photo = null;
   if (src.photos) {
     const photos = await rest(
+      db,
       `listing_photos?select=photo_url&listing_id=eq.${id}&listing_type=eq.${src.photos}&order=sort_order.asc&limit=1`,
     ).catch(() => []);
     photo = photos[0]?.photo_url ?? null;
@@ -168,7 +185,7 @@ async function readPost(kind, id) {
   }
   // Only an object in our own public bucket: a client wrote these columns, and
   // the page must not hotlink whatever address someone typed into one.
-  if (typeof photo !== 'string' || !photo.startsWith(PUBLIC_OBJECTS)) photo = null;
+  if (typeof photo !== 'string' || !photo.startsWith(`${db.url}/storage/v1/object/public/`)) photo = null;
   return { row, photo };
 }
 
@@ -257,7 +274,7 @@ function platformOf(request) {
   return 'other';
 }
 
-function page({ lang, kind, id, post, url, platform }) {
+function page({ lang, kind, id, post, url, site, platform }) {
   const c = COPY[lang];
   const found = !!post;
   const title = found ? String(post.row.title || '').trim() || c.kinds[kind] : c.missingTitle;
@@ -266,7 +283,7 @@ function page({ lang, kind, id, post, url, platform }) {
   const photo = found ? post.photo : null;
   const kindLabel = c.kinds[kind] || 'Mahallify';
   const ogDescription = [status, details].filter(Boolean).join(' · ') || c.lead;
-  const image = photo || 'https://mahallify.us/icon-512.png';
+  const image = photo || `${site}/icon-512.png`;
 
   const appPath = `p/${kind}/${id}`;
   const openHref =
@@ -351,25 +368,26 @@ ${found ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-ar
 </html>`;
 }
 
-export async function onRequestGet({ request, params }) {
+export async function onRequestGet({ request, params, env }) {
   const url = new URL(request.url);
   const lang = pickLang(request, url);
   const platform = platformOf(request);
   const kind = String(params.kind || '');
   const id = String(params.id || '').toLowerCase();
-  const canonical = `https://mahallify.us/p/${kind}/${id}`;
+  const db = dbOf(env, url);
+  const canonical = `${db.site}/p/${kind}/${id}`;
 
   let post = null;
   let failed = false;
   if (KINDS[kind] && UUID.test(id)) {
     try {
-      post = await readPost(kind, id);
+      post = await readPost(db, kind, id);
     } catch {
       failed = true;
     }
   }
 
-  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, platform });
+  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, site: db.site, platform });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
