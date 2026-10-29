@@ -4,24 +4,28 @@
 // `src/lib/postLinks.ts`). Three readers ask for it:
 //
 //   * a link-preview bot (Telegram, WhatsApp, iMessage) — it reads the Open
-//     Graph tags and draws the title, the price · area line and the photo;
+//     Graph tags and draws the title, a summary line and the photo;
 //   * a phone WITHOUT the app — it gets the post's card, "Get Mahallify" for
 //     its own store, and an Open button for when the app is installed;
-//   * a phone WITH the app never gets here: the path is an iOS Universal Link
-//     and a verified Android App Link (/.well-known/), so the OS opens the post
-//     in the app instead.
+//   * a phone WITH a build that has the Universal / App Link never gets here:
+//     the OS opens the post in the app instead.
 //
-// WHAT IS SHOWN is what the app already sends to Telegram as words — the
-// title and one details line — plus the first photo. Never a description:
-// a charity campaign's story is where an organizer writes their own payment
-// link, and nothing here may carry one (the app's CLAUDE.md, Charity). The
-// page is `noindex`: it exists so a forwarded link previews, not so search
-// engines list people's posts.
+// WHAT IS SHOWN is the post's own facts (price, type, when, where, who posted
+// it), the first photo, and an excerpt of its text — EXCEPT for a charity
+// campaign, which shows its title, needs, end date, area and cover and never
+// its story or ways to give: the story is where an organizer writes their own
+// payment link, and nothing here may carry one (the app's CLAUDE.md, Charity).
+// Text is printed as plain text, never linkified. The page is `noindex`: it
+// exists so a forwarded link previews, not so search engines list people's
+// posts. A poster is named by FIRST name only, an anonymous question not at
+// all, and a post made as a page by the page.
 //
 // WHAT IS READ goes through the anon key and RLS, and the page adds its own
 // `status = approved` and `is_active` test on top, because several listing
 // tables let anyone read pending and rejected rows. A row that fails either
-// reads as "no longer available", the same as one that is gone.
+// reads as "no longer available", the same as one that is gone. Who posted it
+// is a SEPARATE best-effort read, so a failure there costs a byline, never the
+// page.
 
 // PRODUCTION, and the only database mahallify.us ever reads. The key is the
 // PUBLISHABLE one — the same one every installed app carries. RLS is the gate,
@@ -57,30 +61,74 @@ const ANDROID_PACKAGE = 'com.mahallify.app';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Each kind's table, the columns its card is drawn from, and where its photo
-// lives. Mirrors SOURCES in the app's src/features/share/sharedPost.ts — the
-// kind words are a public URL format, so this set only ever grows.
+// Each kind's table, the columns its card is drawn from, where its photo
+// lives, its accent and the app SCREEN it opens. Mirrors SOURCES in the app's
+// src/features/share/sharedPost.ts — the kind words are a public URL format,
+// so this set only ever grows. Every column here exists in BOTH databases; one
+// that does not is a 400, which reads as "isn't available".
+//
+// `screen` is the route every installed build already has
+// (`mahallify://housing/<id>`), NOT `p/<kind>/<id>`: only builds with the new
+// `+native-intent` know `/p/`, and on any other one Open landed on "This
+// screen doesn't exist".
 const OFFER_COLS =
-  'id,title,post_type,price,price_type,city,state,travel_destination,travel_destination_city,travel_departure_date,status,is_active,availability';
+  'id,title,description,post_type,price,price_type,condition,city,state,travel_destination,travel_destination_city,travel_departure_date,travel_return_date,status,is_active,availability,user_id,business_id,created_at';
 const KINDS = {
-  housing: { table: 'housing', cols: 'id,title,price,city,state,status,is_active,availability', photos: 'housing' },
-  job: { table: 'jobs', cols: 'id,title,pay_min,pay_max,pay_period,city,state,status,is_active,availability', photos: 'job' },
-  sale: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer' },
-  travel: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer' },
-  deal: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer' },
+  housing: {
+    table: 'housing',
+    cols: 'id,title,description,price,listing_type,bedrooms,bathrooms,city,state,status,is_active,availability,user_id,created_at',
+    photos: 'housing',
+    screen: 'housing',
+    accent: '#22d3ee',
+  },
+  job: {
+    table: 'jobs',
+    cols: 'id,title,description,pay_min,pay_max,pay_period,job_type,city,state,status,is_active,availability,user_id,business_id,created_at',
+    photos: 'job',
+    screen: 'job',
+    accent: '#f59e0b',
+  },
+  sale: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#a855f7' },
+  travel: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#38bdf8' },
+  deal: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#34d399' },
   event: {
     table: 'events',
-    cols: 'id,title,start_date,timezone,recurrence,ends_at,city,state,status,is_active',
+    cols: 'id,title,description,start_date,end_date,timezone,recurrence,ends_at,venue,event_format,price,price_type,city,state,status,is_active,user_id,organization_id,created_at',
     photos: 'event',
+    screen: 'event',
+    accent: '#f472b6',
   },
-  // NO `description`, NO `donate_links`: see the note at the top.
-  charity: { table: 'charity_campaigns', cols: 'id,title,cover_url,city,state,status,is_active,availability,expires_at' },
-  question: { table: 'mahalla_posts', cols: 'id,title,image_urls,comment_count,status' },
-  news: { table: 'news_posts', cols: 'id,title,origin,source_url,image_urls,city,state,status,is_active' },
-  ride: { table: 'ride_offers', cols: 'id,title,price,price_type,image_urls,city,state,status,is_active,availability' },
+  // NO `description`, NO `donate_links`, NO `goal_amount`: see the note at the top.
+  charity: {
+    table: 'charity_campaigns',
+    cols: 'id,title,cover_url,needs,deadline,city,state,status,is_active,availability,expires_at,user_id,organization_id,created_at',
+    screen: 'charity',
+    accent: '#fb7185',
+  },
+  question: {
+    table: 'mahalla_posts',
+    cols: 'id,title,body,image_urls,comment_count,is_anonymous,state,status,user_id,created_at',
+    screen: 'mahalla',
+    accent: '#3b82f6',
+  },
+  news: {
+    table: 'news_posts',
+    cols: 'id,title,description,origin,source_url,source_name,published_on,image_urls,city,state,status,is_active,user_id,created_at',
+    screen: 'news',
+    accent: '#94a3b8',
+  },
+  ride: {
+    table: 'ride_offers',
+    cols: 'id,title,description,price,price_type,routes,seats,image_urls,city,state,status,is_active,availability,user_id,created_at',
+    screen: 'ride',
+    accent: '#facc15',
+  },
 };
 
 // ── Copy, in the app's three languages ────────────────────────────────────────
+//
+// The enum words (`jobType` … `format`) are the app's own, copied from its
+// src/i18n bundles, so the page says what the app says.
 
 const COPY = {
   en: {
@@ -90,9 +138,12 @@ const COPY = {
     },
     open: 'Open in Mahallify',
     get: 'Get Mahallify',
+    getShort: 'Get the app',
     appStore: 'App Store',
     playStore: 'Google Play',
-    lead: 'This post is on Mahallify, the community app for the Central Asian diaspora in the US and Canada.',
+    lead: 'Mahallify is the community app for the Central Asian diaspora in the US and Canada.',
+    more: 'Photos, full details and replies are in the app.',
+    phoneHint: 'Open this link on your phone to see it in the app.',
     gone: 'No longer available',
     ended: 'Ended',
     missingTitle: 'This post isn’t available',
@@ -100,9 +151,25 @@ const COPY = {
     free: 'Free',
     negotiable: 'Negotiable',
     answers: n => (n === 1 ? '1 answer' : `${n} answers`),
-    via: host => `via ${host}`,
     repeats: 'Repeats',
+    studio: 'Studio',
+    beds: n => (n === 1 ? '1 bedroom' : `${n} bedrooms`),
+    baths: n => (n === 1 ? '1 bathroom' : `${n} bathrooms`),
+    postedBy: name => `Posted by ${name}`,
+    privacy: 'Privacy',
+    terms: 'Terms',
+    labels: {
+      type: 'Type', rooms: 'Rooms', where: 'Where', when: 'When', condition: 'Condition',
+      departs: 'Departs', returns: 'Returns', format: 'Format', venue: 'Venue', admission: 'Admission',
+      needs: 'Needs', ends: 'Ends', source: 'Source', published: 'Published', routes: 'Routes',
+      seats: 'Seats', price: 'Price',
+    },
     per: { hourly: '/hr', daily: '/day', weekly: '/wk', monthly: '/mo', yearly: '/yr' },
+    jobType: { full_time: 'Full Time', part_time: 'Part Time', contract: 'Contract', temporary: 'Temporary', gig: 'Gig', seasonal: 'Seasonal', internship: 'Internship', freelance: 'Freelance', live_in: 'Live-in' },
+    housingType: { rent: 'Rent', sublet: 'Sublet', roommate: 'Roommate', sale: 'For Sale' },
+    condition: { new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair', poor: 'Poor' },
+    need: { money: 'Funds', volunteers: 'Volunteers', goods: 'Goods', food: 'Food', shelter: 'Place to stay', transport: 'Rides', blood: 'Blood donors', services: 'Professional help' },
+    format: { in_person: 'In person', online: 'Online', hybrid: 'In person + online' },
   },
   ru: {
     kinds: {
@@ -111,9 +178,12 @@ const COPY = {
     },
     open: 'Открыть в Mahallify',
     get: 'Скачать Mahallify',
+    getShort: 'Скачать',
     appStore: 'App Store',
     playStore: 'Google Play',
-    lead: 'Этот пост в Mahallify — приложении для центральноазиатской диаспоры в США и Канаде.',
+    lead: 'Mahallify — приложение для центральноазиатской диаспоры в США и Канаде.',
+    more: 'Фото, подробности и ответы — в приложении.',
+    phoneHint: 'Откройте эту ссылку на телефоне, чтобы посмотреть в приложении.',
     gone: 'Больше не актуально',
     ended: 'Завершено',
     missingTitle: 'Этот пост недоступен',
@@ -121,9 +191,25 @@ const COPY = {
     free: 'Бесплатно',
     negotiable: 'Договорная',
     answers: n => `Ответов: ${n}`,
-    via: host => `источник: ${host}`,
     repeats: 'Повторяется',
+    studio: 'Студия',
+    beds: n => `Спален: ${n}`,
+    baths: n => `Ванных: ${n}`,
+    postedBy: name => `Автор: ${name}`,
+    privacy: 'Конфиденциальность',
+    terms: 'Условия',
+    labels: {
+      type: 'Тип', rooms: 'Комнаты', where: 'Где', when: 'Когда', condition: 'Состояние',
+      departs: 'Отъезд', returns: 'Возвращение', format: 'Формат', venue: 'Место', admission: 'Вход',
+      needs: 'Нужно', ends: 'До', source: 'Источник', published: 'Опубликовано', routes: 'Маршруты',
+      seats: 'Места', price: 'Цена',
+    },
     per: { hourly: '/час', daily: '/день', weekly: '/нед', monthly: '/мес', yearly: '/год' },
+    jobType: { full_time: 'Полная занятость', part_time: 'Частичная занятость', contract: 'Контракт', temporary: 'Временная', gig: 'Подработка', seasonal: 'Сезонная', internship: 'Стажировка', freelance: 'Фриланс', live_in: 'С проживанием' },
+    housingType: { rent: 'Аренда', sublet: 'Субаренда', roommate: 'Сосед', sale: 'Продажа' },
+    condition: { new: 'Новый', like_new: 'Как новый', good: 'Хорошее', fair: 'Удовлетворительное', poor: 'Плохое' },
+    need: { money: 'Деньги', volunteers: 'Волонтёры', goods: 'Вещи', food: 'Еда', shelter: 'Жильё', transport: 'Транспорт', blood: 'Доноры крови', services: 'Помощь специалиста' },
+    format: { in_person: 'Очно', online: 'Онлайн', hybrid: 'Очно + онлайн' },
   },
   uz: {
     kinds: {
@@ -132,9 +218,12 @@ const COPY = {
     },
     open: 'Mahallify’da ochish',
     get: 'Mahallify’ni yuklab oling',
+    getShort: 'Yuklab olish',
     appStore: 'App Store',
     playStore: 'Google Play',
-    lead: 'Bu post Mahallify’da — AQSh va Kanadadagi Markaziy Osiyo diasporasi uchun ilova.',
+    lead: 'Mahallify — AQSh va Kanadadagi Markaziy Osiyo diasporasi uchun ilova.',
+    more: 'Rasmlar, tafsilotlar va javoblar — ilovada.',
+    phoneHint: 'Ilovada ko‘rish uchun havolani telefoningizda oching.',
     gone: 'Endi dolzarb emas',
     ended: 'Tugagan',
     missingTitle: 'Bu post mavjud emas',
@@ -142,9 +231,25 @@ const COPY = {
     free: 'Bepul',
     negotiable: 'Kelishiladi',
     answers: n => `${n} ta javob`,
-    via: host => `manba: ${host}`,
     repeats: 'Takrorlanadi',
+    studio: 'Studiya',
+    beds: n => `${n} ta yotoqxona`,
+    baths: n => `${n} ta hammom`,
+    postedBy: name => `Muallif: ${name}`,
+    privacy: 'Maxfiylik',
+    terms: 'Shartlar',
+    labels: {
+      type: 'Turi', rooms: 'Xonalar', where: 'Qayerda', when: 'Qachon', condition: 'Holati',
+      departs: 'Jo‘nash', returns: 'Qaytish', format: 'Format', venue: 'Joy', admission: 'Kirish',
+      needs: 'Kerak', ends: 'Tugaydi', source: 'Manba', published: 'E’lon qilingan', routes: 'Yo‘nalishlar',
+      seats: 'O‘rinlar', price: 'Narx',
+    },
     per: { hourly: '/soat', daily: '/kun', weekly: '/hafta', monthly: '/oy', yearly: '/yil' },
+    jobType: { full_time: "To'liq ish kuni", part_time: 'Yarim stavka', contract: 'Shartnoma', temporary: 'Vaqtinchalik', gig: 'Haltura', seasonal: 'Mavsumiy', internship: 'Amaliyot', freelance: 'Frilans', live_in: 'Yashash joyi bilan' },
+    housingType: { rent: 'Ijara', sublet: 'Subijara', roommate: 'Sherik', sale: 'Sotish' },
+    condition: { new: 'Yangi', like_new: 'Yangidek', good: 'Yaxshi', fair: 'Qoniqarli', poor: 'Yomon' },
+    need: { money: "Mablag'", volunteers: "Ko'ngillilar", goods: 'Buyumlar', food: 'Oziq-ovqat', shelter: 'Turar joy', transport: 'Transport', blood: 'Qon donorlari', services: 'Mutaxassis yordami' },
+    format: { in_person: 'Jonli', online: 'Onlayn', hybrid: 'Jonli + onlayn' },
   },
 };
 const LOCALES = { en: 'en-US', ru: 'ru-RU', uz: 'uz-Latn-UZ' };
@@ -171,37 +276,58 @@ async function rest(db, path) {
   return res.json();
 }
 
+/** The byline: the page a post was made as, else the poster's first name.
+ *  Best-effort — any failure is no byline, never a broken page. */
+async function bylineOf(db, kind, row) {
+  if (kind === 'question' && row.is_anonymous) return null;
+  const pageTable = row.business_id ? 'businesses' : row.organization_id ? 'organizations' : null;
+  if (pageTable) {
+    const pageId = row.business_id || row.organization_id;
+    const pages = await rest(db, `${pageTable}?select=name&id=eq.${pageId}&status=eq.approved&limit=1`).catch(() => []);
+    const name = String(pages[0]?.name || '').trim();
+    if (name) return name;
+  }
+  if (!row.user_id || !UUID.test(row.user_id)) return null;
+  const people = await rest(db, `profiles?select=name&id=eq.${row.user_id}&limit=1`).catch(() => []);
+  return String(people[0]?.name || '').trim().split(/\s+/)[0] || null;
+}
+
 async function readPost(db, kind, id) {
   const src = KINDS[kind];
   const rows = await rest(db, `${src.table}?select=${src.cols}&id=eq.${id}&limit=1`);
   const row = rows[0];
   if (!row || row.status !== 'approved' || row.is_active === false) return null;
-  let photo = null;
-  if (src.photos) {
-    const photos = await rest(
-      db,
-      `listing_photos?select=photo_url&listing_id=eq.${id}&listing_type=eq.${src.photos}&order=sort_order.asc&limit=1`,
-    ).catch(() => []);
-    photo = photos[0]?.photo_url ?? null;
-  } else if (kind === 'charity') {
-    photo = row.cover_url;
-  } else if (Array.isArray(row.image_urls)) {
-    photo = row.image_urls[0];
-  }
+  const [photo, byline] = await Promise.all([
+    (async () => {
+      if (src.photos) {
+        const photos = await rest(
+          db,
+          `listing_photos?select=photo_url&listing_id=eq.${id}&listing_type=eq.${src.photos}&order=sort_order.asc&limit=1`,
+        ).catch(() => []);
+        return photos[0]?.photo_url ?? null;
+      }
+      if (kind === 'charity') return row.cover_url;
+      return Array.isArray(row.image_urls) ? row.image_urls[0] : null;
+    })(),
+    bylineOf(db, kind, row),
+  ]);
   // Only an object in our own public bucket: a client wrote these columns, and
   // the page must not hotlink whatever address someone typed into one.
-  if (typeof photo !== 'string' || !photo.startsWith(`${db.url}/storage/v1/object/public/`)) photo = null;
-  return { row, photo };
+  const ours = typeof photo === 'string' && photo.startsWith(`${db.url}/storage/v1/object/public/`);
+  return { row, photo: ours ? photo : null, byline };
 }
 
-// ── The details line ─────────────────────────────────────────────────────────
+// ── What the card says ───────────────────────────────────────────────────────
 
-function money(n, lang) {
-  return '$' + Math.round(Number(n)).toLocaleString(LOCALES[lang]);
+const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT']);
+
+function money(n, lang, state) {
+  const sym = CANADA.has(String(state || '').toUpperCase()) ? 'CA$' : '$';
+  return sym + Math.round(Number(n)).toLocaleString(LOCALES[lang]);
 }
 
-function areaOf(row) {
-  return row.city || row.state || null;
+function placeOf(row) {
+  return [row.city, row.state].filter(Boolean).join(', ') || null;
 }
 
 function hostOf(url) {
@@ -212,53 +338,139 @@ function hostOf(url) {
   }
 }
 
-function eventDate(row, lang) {
-  if (row.recurrence) return COPY[lang].repeats;
+/** A SQL `date` ("2026-12-25"), printed as that calendar day everywhere —
+ *  read as UTC and printed in UTC, so it never slips to the day before. */
+function dateOnly(s, lang) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || ''));
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return new Intl.DateTimeFormat(LOCALES[lang], { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d);
+}
+
+function postedOn(s, lang) {
+  const t = Date.parse(s);
+  if (!t) return null;
+  return new Intl.DateTimeFormat(LOCALES[lang], { month: 'short', day: 'numeric', timeZone: 'America/New_York' }).format(new Date(t));
+}
+
+/** An event's time in ITS OWN zone, as a range when it has an end. */
+function eventWhen(row, lang) {
   if (!row.start_date) return null;
   const opts = {
     weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
     timeZone: row.timezone || 'America/New_York',
   };
   try {
-    return new Intl.DateTimeFormat(LOCALES[lang], opts).format(new Date(row.start_date));
+    const fmt = new Intl.DateTimeFormat(LOCALES[lang], opts);
+    const start = new Date(row.start_date);
+    const end = row.end_date ? new Date(row.end_date) : null;
+    const text = end && end > start && fmt.formatRange ? fmt.formatRange(start, end) : fmt.format(start);
+    return row.recurrence && row.recurrence !== 'none' ? `${COPY[lang].repeats} · ${text}` : text;
   } catch {
     return null;
   }
 }
 
-function detailsOf(kind, row, lang) {
+function priceOf(row, lang) {
   const c = COPY[lang];
+  if (row.price_type === 'free') return c.free;
+  if (row.price) return money(row.price, lang, row.state);
+  return row.price_type === 'negotiable' ? c.negotiable : null;
+}
+
+/** The headline figure under the title, and the facts list under that. */
+function factsOf(kind, row, lang) {
+  const c = COPY[lang];
+  const L = c.labels;
+  const where = placeOf(row);
   let lead = null;
+  const facts = [];
+  const add = (label, value) => {
+    if (value) facts.push([label, value]);
+  };
   switch (kind) {
-    case 'housing':
+    case 'housing': {
       // 0 is housing's "negotiable"; NULL says nothing.
-      lead = row.price == null ? null : row.price ? money(row.price, lang) : c.negotiable;
+      const monthly = row.listing_type && row.listing_type !== 'sale';
+      lead = row.price == null ? null : row.price ? money(row.price, lang, row.state) + (monthly ? c.per.monthly : '') : c.negotiable;
+      add(L.type, c.housingType[row.listing_type]);
+      const rooms = [
+        row.bedrooms === 0 ? c.studio : row.bedrooms ? c.beds(row.bedrooms) : null,
+        row.bathrooms ? c.baths(row.bathrooms) : null,
+      ].filter(Boolean);
+      add(L.rooms, rooms.join(' · '));
+      add(L.where, where);
       break;
+    }
     case 'job': {
       const lo = row.pay_min, hi = row.pay_max;
-      const range = lo && hi && lo !== hi ? `${money(lo, lang)}–${money(hi, lang)}` : lo || hi ? money(lo || hi, lang) : null;
+      const range = lo && hi && lo !== hi ? `${money(lo, lang, row.state)}–${money(hi, lang, row.state)}` : lo || hi ? money(lo || hi, lang, row.state) : null;
       lead = range ? range + (c.per[row.pay_period] || '') : null;
+      add(L.type, c.jobType[row.job_type]);
+      add(L.where, where);
       break;
     }
     case 'sale':
     case 'deal':
-    case 'ride':
-      lead = row.price_type === 'free' ? c.free : row.price ? money(row.price, lang) : row.price_type === 'negotiable' ? c.negotiable : null;
+      lead = priceOf(row, lang);
+      if (kind === 'sale') add(L.condition, c.condition[row.condition]);
+      add(L.where, where);
       break;
-    case 'travel':
-      lead = row.travel_destination_city || row.travel_destination || null;
+    case 'travel': {
+      const to = row.travel_destination_city || row.travel_destination;
+      lead = to ? [row.city, to].filter(Boolean).join(' → ') : null;
+      add(L.departs, dateOnly(row.travel_departure_date, lang));
+      add(L.returns, dateOnly(row.travel_return_date, lang));
+      add(L.where, where);
       break;
-    case 'event':
-      lead = eventDate(row, lang);
-      break;
-    case 'question':
-      return c.answers(Number(row.comment_count || 0));
-    case 'news': {
-      const host = row.source_url ? hostOf(row.source_url) : null;
-      return [host ? c.via(host) : null, areaOf(row)].filter(Boolean).join(' · ') || null;
     }
+    case 'event': {
+      add(L.when, eventWhen(row, lang));
+      if (row.event_format && row.event_format !== 'in_person') add(L.format, c.format[row.event_format]);
+      if (row.event_format !== 'online') add(L.venue, row.venue);
+      add(L.where, where);
+      add(L.admission, priceOf(row, lang));
+      break;
+    }
+    case 'charity': {
+      const needs = Array.isArray(row.needs) ? row.needs.map(n => c.need[n]).filter(Boolean) : [];
+      add(L.needs, needs.join(', '));
+      add(L.ends, dateOnly(row.deadline, lang));
+      add(L.where, where);
+      break;
+    }
+    case 'question':
+      lead = c.answers(Number(row.comment_count || 0));
+      add(L.where, row.state);
+      break;
+    case 'news':
+      add(L.source, row.source_name || (row.source_url ? hostOf(row.source_url) : null));
+      add(L.published, dateOnly(row.published_on, lang));
+      add(L.where, where);
+      break;
+    case 'ride':
+      lead = priceOf(row, lang);
+      add(L.routes, row.routes);
+      add(L.seats, row.seats);
+      add(L.where, where);
+      break;
   }
-  return [lead, areaOf(row)].filter(Boolean).join(' · ') || null;
+  return { lead, facts };
+}
+
+/** The post's own words, cut to a readable excerpt. Never a charity story. */
+function excerptOf(kind, row, max = 420) {
+  if (kind === 'charity') return null;
+  const raw = String((kind === 'question' ? row.body : row.description) || '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  if (!raw) return null;
+  if (raw.length <= max) return raw;
+  const cut = raw.slice(0, max);
+  const space = cut.lastIndexOf(' ');
+  return (space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s.,;:–—-]+$/, '') + '…';
 }
 
 function statusOf(kind, row, lang) {
@@ -279,28 +491,46 @@ function platformOf(request) {
   return 'other';
 }
 
+const APPLE_GLYPH =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.6c-.02-2.1 1.72-3.12 1.8-3.17-.98-1.43-2.5-1.63-3.05-1.65-1.3-.13-2.53.76-3.19.76-.66 0-1.67-.74-2.75-.72-1.41.02-2.72.82-3.45 2.09-1.47 2.55-.38 6.33 1.06 8.4.7 1.01 1.53 2.15 2.62 2.11 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.05.8-1.17 1.13-2.31 1.15-2.37-.03-.01-2.2-.84-2.22-3.35zM14.3 6.43c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.54.62-1.01 1.61-.88 2.56.93.07 1.88-.47 2.46-1.16z"/></svg>';
+const PLAY_GLYPH =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.6 2.9c-.27.28-.43.72-.43 1.29v15.62c0 .57.16 1.01.43 1.29l.07.07 8.75-8.75v-.2L4.67 2.83l-.07.07zm11.73 11.44-2.91-2.92v-.2l2.91-2.92.07.04 3.45 1.96c.99.56.99 1.48 0 2.04l-3.45 1.96-.07.04zm-.07.04-2.98-2.98-8.68 8.68c.32.34.85.38 1.45.04l10.21-5.74m0-5.97L6.05 2.71c-.6-.34-1.13-.3-1.45.04l8.68 8.68 2.98-2.98z"/></svg>';
+
 function page({ lang, kind, id, post, url, site, platform }) {
   const c = COPY[lang];
   const found = !!post;
+  const src = kind ? KINDS[kind] : null;
+  const accent = src?.accent || '#4f7dff';
   const title = found ? String(post.row.title || '').trim() || c.kinds[kind] : c.missingTitle;
-  const details = found ? detailsOf(kind, post.row, lang) : c.missingBody;
+  const { lead, facts } = found ? factsOf(kind, post.row, lang) : { lead: null, facts: [] };
   const status = found ? statusOf(kind, post.row, lang) : null;
+  const excerpt = found ? excerptOf(kind, post.row) : null;
   const photo = found ? post.photo : null;
-  const kindLabel = c.kinds[kind] || 'Mahallify';
-  const ogDescription = [status, details].filter(Boolean).join(' · ') || c.lead;
+  const posted = found ? postedOn(post.row.created_at, lang) : null;
+  const byline = found && post.byline ? post.byline : null;
+  const kindLabel = (kind && c.kinds[kind]) || 'Mahallify';
+
+  // What a preview bot prints under the title: the figures first, then the
+  // start of the post's own words.
+  const summary = [status, lead, ...facts.slice(0, 2).map(f => f[1])].filter(Boolean).join(' · ');
+  const short = excerpt ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ') : null;
+  const ogDescription = found ? [summary, short].filter(Boolean).join(' — ') || c.lead : c.missingBody;
   const image = photo || `${site}/icon-512.png`;
 
-  const appPath = `p/${kind}/${id}`;
+  const appPath = src ? `${src.screen}/${id}` : '';
+  const appUrl = `mahallify://${appPath}`;
   const openHref =
     platform === 'android'
       ? `intent://${appPath}#Intent;scheme=mahallify;package=${ANDROID_PACKAGE};S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
-      : `mahallify://${appPath}`;
+      : appUrl;
   const stores =
     platform === 'ios'
-      ? [[APP_STORE, c.appStore]]
+      ? [[APP_STORE, c.appStore, APPLE_GLYPH]]
       : platform === 'android'
-        ? [[PLAY_STORE, c.playStore]]
-        : [[APP_STORE, c.appStore], [PLAY_STORE, c.playStore]];
+        ? [[PLAY_STORE, c.playStore, PLAY_GLYPH]]
+        : [[APP_STORE, c.appStore, APPLE_GLYPH], [PLAY_STORE, c.playStore, PLAY_GLYPH]];
+  const canOpen = found && platform !== 'other';
+  const legal = lang === 'en' ? '' : `${lang}/`;
 
   return `<!doctype html>
 <html lang="${lang}">
@@ -312,12 +542,14 @@ function page({ lang, kind, id, post, url, site, platform }) {
 <meta name="description" content="${esc(ogDescription)}" />
 <meta name="theme-color" content="#04060f" />
 <meta name="color-scheme" content="dark" />
-${found ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(url)}" />` : ''}
+${found ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(appUrl)}" />` : ''}
 <meta property="og:site_name" content="Mahallify" />
 <meta property="og:type" content="article" />
+<meta property="og:locale" content="${LOCALES[lang].replace('-', '_')}" />
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(ogDescription)}" />
 <meta property="og:image" content="${esc(image)}" />
+<meta property="og:image:alt" content="${esc(title)}" />
 <meta property="og:url" content="${esc(url)}" />
 <meta name="twitter:card" content="${photo ? 'summary_large_image' : 'summary'}" />
 <meta name="twitter:title" content="${esc(title)}" />
@@ -327,48 +559,107 @@ ${found ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-ar
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#04060f; --card:#0d1220; --line:rgba(255,255,255,.08); --ink:#f4f6fb; --ink2:#a7b0c2; --brand:#22d3ee; --brandInk:#03222a; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
-  main { max-width:480px; margin:0 auto; padding:24px 16px calc(32px + env(safe-area-inset-bottom)); }
-  .brand { display:flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; font-weight:700; font-size:18px; letter-spacing:-.01em; margin-bottom:20px; }
-  .brand img { width:32px; height:32px; border-radius:9px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; overflow:hidden; }
-  .photo { display:block; width:100%; aspect-ratio:4/3; object-fit:cover; background:#151b2c; }
-  .body { padding:18px 18px 20px; }
-  .kind { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--brand); }
-  h1 { margin:8px 0 6px; font-size:24px; line-height:1.25; letter-spacing:-.02em; font-weight:700; overflow-wrap:anywhere; }
-  .details { margin:0; font-size:15px; line-height:1.45; color:var(--ink2); overflow-wrap:anywhere; }
-  .status { display:inline-block; margin-top:12px; padding:4px 10px; border-radius:999px; font-size:13px; font-weight:600; background:rgba(255,255,255,.08); color:var(--ink); }
-  .actions { display:grid; gap:10px; margin-top:20px; }
-  .btn { display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:14px; font-size:16px; font-weight:600; text-decoration:none; }
-  .btn.primary { background:var(--brand); color:var(--brandInk); }
-  .btn.secondary { background:rgba(255,255,255,.07); color:var(--ink); border:1px solid var(--line); }
-  .lead { margin:20px 2px 0; font-size:14px; line-height:1.5; color:var(--ink2); }
+  :root {
+    --bg:#04060f; --bg2:#090e1d; --card:#0c1226; --raise:rgba(255,255,255,.045);
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --ink:#f3f6ff; --ink2:rgba(223,232,255,.72); --ink3:rgba(186,202,240,.55);
+    --brand:#22d3ee; --brandInk:#03222a; --accent:${accent};
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+  body { min-height:100vh; background:
+    radial-gradient(900px 420px at 50% -120px, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    var(--bg); }
+  a { color:inherit; }
+  .wrap { max-width:520px; margin:0 auto; padding:max(16px, env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; height:52px; margin-bottom:12px; }
+  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; font-family:Manrope,Inter,sans-serif; font-weight:800; font-size:19px; letter-spacing:-.02em; }
+  .brand img { width:30px; height:30px; border-radius:8px; }
+  .top .get { font-size:14px; font-weight:600; text-decoration:none; color:var(--ink2); padding:8px 12px; border-radius:999px; border:1px solid var(--line); background:var(--raise); }
+  .card { background:linear-gradient(180deg, var(--card), var(--bg2)); border:1px solid var(--line); border-radius:24px; overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 30px 70px -36px rgba(0,0,0,.95); }
+  .hero { position:relative; background:#111833; aspect-ratio:16/10; }
+  .hero img { display:block; width:100%; height:100%; object-fit:cover; }
+  .body { padding:20px 20px 22px; }
+  .meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .kind { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+  .kind::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .status { font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:rgba(255,255,255,.09); color:var(--ink); }
+  h1 { margin-top:10px; font-family:Manrope,Inter,sans-serif; font-size:clamp(24px, 6.4vw, 30px); line-height:1.18; letter-spacing:-.025em; font-weight:800; overflow-wrap:anywhere; }
+  .lead { margin-top:8px; font-size:20px; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
+  .facts { margin-top:18px; border-top:1px solid var(--line); }
+  .fact { display:grid; grid-template-columns:minmax(88px, 32%) 1fr; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .fact dt { font-size:13px; color:var(--ink3); padding-top:1px; }
+  .fact dd { font-size:15px; font-weight:500; line-height:1.4; overflow-wrap:anywhere; }
+  .excerpt { margin-top:18px; font-size:15px; line-height:1.6; color:var(--ink2); white-space:pre-line; overflow-wrap:anywhere; }
+  .by { display:flex; align-items:center; gap:10px; margin-top:18px; font-size:14px; color:var(--ink3); }
+  .by .av { flex:none; display:grid; place-items:center; width:30px; height:30px; border-radius:50%; font-weight:700; font-size:13px; color:var(--ink);
+    background:color-mix(in srgb, var(--accent) 26%, #1a2240); }
+  .by b { color:var(--ink); font-weight:600; }
+  .more { margin-top:16px; font-size:13px; color:var(--ink3); }
+  .missing { padding:36px 22px 30px; text-align:center; }
+  .missing .glyph { width:56px; height:56px; margin:0 auto 16px; border-radius:16px; opacity:.9; }
+  .missing h1 { font-size:24px; margin-top:0; }
+  .missing p { margin-top:8px; color:var(--ink2); font-size:15px; line-height:1.5; }
+  .actions { display:grid; gap:10px; margin-top:18px; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:9px; min-height:52px; border-radius:16px; font-size:16px; font-weight:600; text-decoration:none; }
+  .btn svg { width:19px; height:19px; }
+  .btn.primary { background:var(--brand); color:var(--brandInk); box-shadow:0 10px 30px -12px rgba(34,211,238,.6); }
+  .btn.secondary { background:var(--raise); color:var(--ink); border:1px solid var(--line2); }
+  .hint { margin-top:12px; text-align:center; font-size:13px; color:var(--ink3); }
+  .foot { margin-top:28px; padding-top:18px; border-top:1px solid var(--line); font-size:13px; line-height:1.55; color:var(--ink3); }
+  .foot nav { display:flex; gap:16px; margin-top:10px; }
+  .foot nav a { text-decoration:none; color:var(--ink2); }
 </style>
 </head>
 <body>
-<main>
-  <a class="brand" href="/"><img src="/icon-192.png" alt="" width="32" height="32" />mahallify</a>
-  <article class="card">
-    ${photo ? `<img class="photo" src="${esc(photo)}" alt="" />` : ''}
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><img src="/icon-192.png" alt="" width="30" height="30" />mahallify</a>
+    <a class="get" href="/get">${esc(c.getShort)}</a>
+  </header>
+  <main>
+  ${
+    found
+      ? `<article class="card">
+    ${photo ? `<div class="hero"><img src="${esc(photo)}" alt="" onerror="this.parentNode.remove()" /></div>` : ''}
     <div class="body">
-      ${found ? `<div class="kind">${esc(kindLabel)}</div>` : ''}
+      <div class="meta"><span class="kind">${esc(kindLabel)}</span>${status ? `<span class="status">${esc(status)}</span>` : ''}</div>
       <h1>${esc(title)}</h1>
-      ${details ? `<p class="details">${esc(details)}</p>` : ''}
-      ${status ? `<span class="status">${esc(status)}</span>` : ''}
+      ${lead ? `<p class="lead">${esc(lead)}</p>` : ''}
+      ${facts.length ? `<dl class="facts">${facts.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+      ${excerpt ? `<p class="excerpt">${esc(excerpt)}</p>` : ''}
+      ${
+        byline || posted
+          ? `<div class="by">${byline ? `<span class="av">${esc(byline.slice(0, 1).toUpperCase())}</span>` : ''}<span>${
+              byline ? esc(c.postedBy('\u0000')).replace('\u0000', `<b>${esc(byline)}</b>`) : ''
+            }${byline && posted ? ' · ' : ''}${posted ? esc(posted) : ''}</span></div>`
+          : ''
+      }
+      <p class="more">${esc(c.more)}</p>
     </div>
-  </article>
+  </article>`
+      : `<article class="card missing">
+    <img class="glyph" src="/icon-192.png" alt="" width="56" height="56" />
+    <h1>${esc(title)}</h1>
+    <p>${esc(c.missingBody)}</p>
+  </article>`
+  }
   <div class="actions">
-    ${found && platform !== 'other' ? `<a class="btn primary" href="${esc(openHref)}">${esc(c.open)}</a>` : ''}
+    ${canOpen ? `<a class="btn primary" href="${esc(openHref)}">${esc(c.open)}</a>` : ''}
     ${stores
-      .map(([href, label]) => `<a class="btn ${found && platform !== 'other' ? 'secondary' : 'primary'}" href="${href}">${esc(c.get)} · ${esc(label)}</a>`)
+      .map(([href, label, glyph]) => `<a class="btn ${canOpen ? 'secondary' : 'primary'}" href="${href}">${glyph}${esc(c.get)} · ${esc(label)}</a>`)
       .join('\n    ')}
   </div>
-  <p class="lead">${esc(c.lead)}</p>
-</main>
+  ${found && platform === 'other' ? `<p class="hint">${esc(c.phoneHint)}</p>` : ''}
+  </main>
+  <footer class="foot">
+    ${esc(c.lead)}
+    <nav><a href="/${legal}privacy.html">${esc(c.privacy)}</a><a href="/${legal}terms.html">${esc(c.terms)}</a></nav>
+  </footer>
+</div>
 </body>
 </html>`;
 }
