@@ -58,6 +58,20 @@ const DEV = {
   storeBanner: false,
 };
 
+// A link shared from EXPO GO carries the sharer's dev server, `?exp=exp://
+// 192.168.1.5:8081` (the app's postLinks.ts): Expo Go answers no app scheme,
+// so this is the only way Open can reach it. Honoured on the DEV preview only,
+// and only for a bare local-network or Expo-tunnel address — nothing else can
+// be smuggled into the button.
+const EXPO_GO_SERVER =
+  /^exps?:\/\/(localhost|127(\.\d{1,3}){3}|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2}|[a-z0-9-]+(\.[a-z0-9-]+)*\.exp\.direct)(:\d{1,5})?$/i;
+
+function expoGoOf(url, db) {
+  if (db === PROD) return null;
+  const exp = url.searchParams.get('exp');
+  return exp && EXPO_GO_SERVER.test(exp) ? exp : null;
+}
+
 function dbOf(url) {
   if (url.hostname.startsWith('dev.') && url.hostname.endsWith('.pages.dev')) {
     return { ...DEV, site: url.origin };
@@ -506,7 +520,7 @@ const APPLE_GLYPH =
 const PLAY_GLYPH =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.6 2.9c-.27.28-.43.72-.43 1.29v15.62c0 .57.16 1.01.43 1.29l.07.07 8.75-8.75v-.2L4.67 2.83l-.07.07zm11.73 11.44-2.91-2.92v-.2l2.91-2.92.07.04 3.45 1.96c.99.56.99 1.48 0 2.04l-3.45 1.96-.07.04zm-.07.04-2.98-2.98-8.68 8.68c.32.34.85.38 1.45.04l10.21-5.74m0-5.97L6.05 2.71c-.6-.34-1.13-.3-1.45.04l8.68 8.68 2.98-2.98z"/></svg>';
 
-function page({ lang, kind, id, post, url, db, platform }) {
+function page({ lang, kind, id, post, url, db, expoGo, platform }) {
   const c = COPY[lang];
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
@@ -529,8 +543,9 @@ function page({ lang, kind, id, post, url, db, platform }) {
 
   const appPath = src ? `${src.screen}/${id}` : '';
   const appUrl = `${db.scheme}://${appPath}`;
-  const openHref =
-    platform === 'android'
+  const openHref = expoGo
+    ? `${expoGo}/--/${appPath}`
+    : platform === 'android'
       ? `intent://${appPath}#Intent;scheme=${db.scheme};package=${db.androidPackage};S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
       : appUrl;
   const stores =
@@ -693,7 +708,7 @@ export async function onRequestGet({ request, params }) {
     }
   }
 
-  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, db, platform });
+  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
