@@ -46,15 +46,15 @@ const PROD = {
 // variable because the dashboard offers no Preview-only variables; the key is
 // the dev project's public anon key, as public as the one above.
 //
-// Its Open button goes to the app's DEV VARIANT (the app's app.config.js:
-// "Mahallify Dev", `mahallify-dev://`, com.mahallify.app.dev), which reads the
-// same dev database — the store app reads production and would answer a dev
-// post with "not found". No Smart App Banner: that names the store app.
+// Its Open button reaches EXPO GO only (`?exp=`, below): the store app reads
+// production and would answer a dev post with "not found", so without an
+// Expo Go address there is no Open at all. No Smart App Banner either: that
+// names the store app.
 const DEV = {
   url: 'https://ysbkniochkmgjpaubxgw.supabase.co',
   key: 'sb_publishable_KDLNjzvuppFO7-u-ZFsagw_nIOAPT0p',
-  scheme: 'mahallify-dev',
-  androidPackage: 'com.mahallify.app.dev',
+  scheme: null,
+  androidPackage: null,
   storeBanner: false,
 };
 
@@ -554,7 +554,7 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
       : platform === 'android'
         ? [[PLAY_STORE, c.playStore, PLAY_GLYPH]]
         : [[APP_STORE, c.appStore, APPLE_GLYPH], [PLAY_STORE, c.playStore, PLAY_GLYPH]];
-  const canOpen = found && platform !== 'other';
+  const canOpen = found && platform !== 'other' && !!(expoGo || db.scheme);
   const legal = lang === 'en' ? '' : `${lang}/`;
 
   return `<!doctype html>
