@@ -34,6 +34,9 @@ const PROD = {
   url: 'https://clqvjgvvctxiddygsrdc.supabase.co',
   key: 'sb_publishable_obdgsQkXsclyCmilF1ngKQ_heV0__iu',
   site: 'https://mahallify.us',
+  scheme: 'mahallify',
+  androidPackage: 'com.mahallify.app',
+  storeBanner: true,
 };
 
 // The DEV project, read only by the `dev` branch's preview deployment
@@ -42,9 +45,17 @@ const PROD = {
 // exists only in dev still previews. Chosen by HOST rather than by a Pages
 // variable because the dashboard offers no Preview-only variables; the key is
 // the dev project's public anon key, as public as the one above.
+//
+// Its Open button goes to the app's DEV VARIANT (the app's app.config.js:
+// "Mahallify Dev", `mahallify-dev://`, com.mahallify.app.dev), which reads the
+// same dev database — the store app reads production and would answer a dev
+// post with "not found". No Smart App Banner: that names the store app.
 const DEV = {
   url: 'https://ysbkniochkmgjpaubxgw.supabase.co',
   key: 'sb_publishable_KDLNjzvuppFO7-u-ZFsagw_nIOAPT0p',
+  scheme: 'mahallify-dev',
+  androidPackage: 'com.mahallify.app.dev',
+  storeBanner: false,
 };
 
 function dbOf(url) {
@@ -57,7 +68,6 @@ function dbOf(url) {
 const APP_STORE = 'https://apps.apple.com/app/id6762940667';
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.mahallify.app';
 const APP_STORE_ID = '6762940667';
-const ANDROID_PACKAGE = 'com.mahallify.app';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -496,7 +506,7 @@ const APPLE_GLYPH =
 const PLAY_GLYPH =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.6 2.9c-.27.28-.43.72-.43 1.29v15.62c0 .57.16 1.01.43 1.29l.07.07 8.75-8.75v-.2L4.67 2.83l-.07.07zm11.73 11.44-2.91-2.92v-.2l2.91-2.92.07.04 3.45 1.96c.99.56.99 1.48 0 2.04l-3.45 1.96-.07.04zm-.07.04-2.98-2.98-8.68 8.68c.32.34.85.38 1.45.04l10.21-5.74m0-5.97L6.05 2.71c-.6-.34-1.13-.3-1.45.04l8.68 8.68 2.98-2.98z"/></svg>';
 
-function page({ lang, kind, id, post, url, site, platform }) {
+function page({ lang, kind, id, post, url, db, platform }) {
   const c = COPY[lang];
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
@@ -515,13 +525,13 @@ function page({ lang, kind, id, post, url, site, platform }) {
   const summary = [status, lead, ...facts.slice(0, 2).map(f => f[1])].filter(Boolean).join(' · ');
   const short = excerpt ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ') : null;
   const ogDescription = found ? [summary, short].filter(Boolean).join(' — ') || c.lead : c.missingBody;
-  const image = photo || `${site}/icon-512.png`;
+  const image = photo || `${db.site}/icon-512.png`;
 
   const appPath = src ? `${src.screen}/${id}` : '';
-  const appUrl = `mahallify://${appPath}`;
+  const appUrl = `${db.scheme}://${appPath}`;
   const openHref =
     platform === 'android'
-      ? `intent://${appPath}#Intent;scheme=mahallify;package=${ANDROID_PACKAGE};S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
+      ? `intent://${appPath}#Intent;scheme=${db.scheme};package=${db.androidPackage};S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
       : appUrl;
   const stores =
     platform === 'ios'
@@ -542,7 +552,7 @@ function page({ lang, kind, id, post, url, site, platform }) {
 <meta name="description" content="${esc(ogDescription)}" />
 <meta name="theme-color" content="#04060f" />
 <meta name="color-scheme" content="dark" />
-${found ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(appUrl)}" />` : ''}
+${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(appUrl)}" />` : ''}
 <meta property="og:site_name" content="Mahallify" />
 <meta property="og:type" content="article" />
 <meta property="og:locale" content="${LOCALES[lang].replace('-', '_')}" />
@@ -683,7 +693,7 @@ export async function onRequestGet({ request, params }) {
     }
   }
 
-  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, site: db.site, platform });
+  const html = page({ lang, kind: KINDS[kind] ? kind : null, id, post, url: canonical, db, platform });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
