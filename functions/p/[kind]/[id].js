@@ -25,7 +25,9 @@
 // `community` (a business or community page, by its id), `pro` (a
 // professional, by the PERSON's id — the profile screen's key) and `circle`.
 // A professional is named by FIRST name and drawn with NO photo — a face does
-// not go on a page any signed-out visitor can open. A circle shows what the
+// not go on a page any signed-out visitor can open. A business or community
+// page names its owner the same way, by first name ("Owner: Aziz"), and that
+// line — like a post's "Posted by" — is in the link preview's text too. A circle shows what the
 // app's Explore shows anyone — name, cover, size, private or public — and
 // never who is in it, even for a private one.
 //
@@ -166,14 +168,14 @@ const KINDS = {
   // ── Not posts: `page` kinds have no byline, no date and their own copy. ──
   business: {
     table: 'businesses',
-    cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,review_count,avg_rating,status,is_active,created_at',
+    cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,review_count,avg_rating,status,is_active,user_id,created_at',
     screen: 'business',
     accent: '#38bdf8',
     page: true,
   },
   community: {
     table: 'organizations',
-    cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,status,is_active,created_at',
+    cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,status,is_active,user_id,created_at',
     screen: 'organization',
     accent: '#fb923c',
     page: true,
@@ -398,7 +400,8 @@ const LABELS = {
       "translator": "Translator",
       "truck_driver": "Truck driver (CDL)",
       "tutor": "Tutor",
-      "volunteer_coordinator": "Volunteer coordinator"
+      "volunteer_coordinator": "Volunteer coordinator",
+      "youth_leader": "Youth leader"
     },
     "years": {
       "0": "Under 1 year",
@@ -605,7 +608,8 @@ const LABELS = {
       "translator": "Переводчик",
       "truck_driver": "Водитель грузовика (CDL)",
       "tutor": "Репетитор",
-      "volunteer_coordinator": "Координатор волонтёров"
+      "volunteer_coordinator": "Координатор волонтёров",
+      "youth_leader": "Молодёжный лидер"
     },
     "years": {
       "0": "Меньше года",
@@ -812,7 +816,8 @@ const LABELS = {
       "translator": "Tarjimon",
       "truck_driver": "Yuk mashinasi haydovchisi (CDL)",
       "tutor": "Repetitor",
-      "volunteer_coordinator": "Ko‘ngillilar koordinatori"
+      "volunteer_coordinator": "Ko‘ngillilar koordinatori",
+      "youth_leader": "Yoshlar yetakchisi"
     },
     "years": {
       "0": "1 yildan kam",
@@ -881,6 +886,7 @@ const COPY = {
       private: 'Private · members are approved',
       public: 'Public · anyone can join',
       missingTitle: 'This page isn’t available',
+      by: { business: name => `Owner: ${name}`, community: name => `Run by ${name}` },
       more: { business: 'Photos, posts and contacts are in the app.', community: 'Photos, posts and contacts are in the app.', pro: 'Message them in the app.', circle: 'The conversation is in the app.' },
     },
   },
@@ -933,6 +939,7 @@ const COPY = {
       private: 'Закрытый · участников одобряют',
       public: 'Открытый · вступить может любой',
       missingTitle: 'Эта страница недоступна',
+      by: { business: name => `Владелец: ${name}`, community: name => `Руководитель: ${name}` },
       more: { business: 'Фото, посты и контакты — в приложении.', community: 'Фото, посты и контакты — в приложении.', pro: 'Написать можно в приложении.', circle: 'Общение — в приложении.' },
     },
   },
@@ -985,6 +992,7 @@ const COPY = {
       private: 'Yopiq · a’zolar tasdiqlanadi',
       public: 'Ochiq · istalgan kishi qo‘shila oladi',
       missingTitle: 'Bu sahifa mavjud emas',
+      by: { business: name => `Egasi: ${name}`, community: name => `Rahbari: ${name}` },
       more: { business: 'Rasmlar, postlar va kontaktlar — ilovada.', community: 'Rasmlar, postlar va kontaktlar — ilovada.', pro: 'Ilovada xabar yozishingiz mumkin.', circle: 'Suhbat — ilovada.' },
     },
   },
@@ -1057,11 +1065,17 @@ async function readPost(db, kind, id) {
   const row = rows[0];
   if (!row || !isLive(kind, row)) return null;
   if (src.page) {
-    const person = kind === 'pro' ? await personOf(db, row) : null;
+    // A business or community page names its owner, by first name, the way a
+    // post names its poster. A circle names nobody (see the top of the file).
+    const owned = kind === 'business' || kind === 'community';
+    const [person, owner] = await Promise.all([
+      kind === 'pro' ? personOf(db, row) : null,
+      owned ? personOf(db, row).catch(() => null) : null,
+    ]);
     // A professional is drawn with no photo (see the top of the file).
     const photo = kind === 'pro' ? null : row.cover_url || row.logo_url || null;
     const ours = typeof photo === 'string' && photo.startsWith(`${db.url}/storage/v1/object/public/`);
-    return { row, photo: ours ? photo : null, byline: null, person };
+    return { row, photo: ours ? photo : null, byline: owner?.first || null, person };
   }
   const [photo, byline] = await Promise.all([
     (async () => {
@@ -1448,11 +1462,17 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
   // A page is not dated: it does not end, and the day it was made says nothing.
   const posted = found && !isPage ? postedOn(post.row.created_at, lang) : null;
   const byline = found && post.byline ? post.byline : null;
+  // "Posted by Aziz" on a post, "Owner: Aziz" on a business page.
+  const byWords = (isPage && c.pages.by[kind]) || c.postedBy;
   const kindLabel = (kind && c.kinds[kind]) || 'Mahallify';
 
   // What a preview bot prints under the title: the figures first, then the
   // start of the post's own words.
-  const summary = [status, lead, ...facts.slice(0, 2).map(f => f[1])].filter(Boolean).join(' · ');
+  // Who posted it (or owns the page) closes the figures, so a forwarded link
+  // says whose it is before anyone opens it.
+  const summary = [status, lead, ...facts.slice(0, 2).map(f => f[1]), byline ? byWords(byline) : null]
+    .filter(Boolean)
+    .join(' · ');
   const short = excerpt ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ') : null;
   const ogDescription = found ? [summary, short].filter(Boolean).join(' — ') || c.lead : c.missingBody;
   const image = photo || `${db.site}/icon-512.png`;
@@ -1577,7 +1597,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
       ${
         byline || posted
           ? `<div class="by">${byline ? `<span class="av">${esc(byline.slice(0, 1).toUpperCase())}</span>` : ''}<span>${
-              byline ? esc(c.postedBy('\u0000')).replace('\u0000', `<b>${esc(byline)}</b>`) : ''
+              byline ? esc(byWords('\u0000')).replace('\u0000', `<b>${esc(byline)}</b>`) : ''
             }${byline && posted ? ' · ' : ''}${posted ? esc(posted) : ''}</span></div>`
           : ''
       }
