@@ -20,6 +20,15 @@
 // posts. A poster is named by FIRST name only, an anonymous question not at
 // all, and a post made as a page by the page.
 //
+// PAGES, PEOPLE AND CIRCLES have a page here too, under the same /p/ prefix
+// (the one the app's Universal / App Link config claims): `business` and
+// `community` (a business or community page, by its id), `pro` (a
+// professional, by the PERSON's id — the profile screen's key) and `circle`.
+// A professional is named by FIRST name and drawn with NO photo — a face does
+// not go on a page any signed-out visitor can open. A circle shows what the
+// app's Explore shows anyone — name, cover, size, private or public — and
+// never who is in it, even for a private one.
+//
 // WHAT IS READ goes through the anon key and RLS, and the page adds its own
 // `status = approved` and `is_active` test on top, because several listing
 // tables let anyone read pending and rejected rows. A row that fails either
@@ -154,7 +163,668 @@ const KINDS = {
     screen: 'ride',
     accent: '#facc15',
   },
+  // ── Not posts: `page` kinds have no byline, no date and their own copy. ──
+  business: {
+    table: 'businesses',
+    cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,review_count,avg_rating,status,is_active,created_at',
+    screen: 'business',
+    accent: '#38bdf8',
+    page: true,
+  },
+  community: {
+    table: 'organizations',
+    cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,status,is_active,created_at',
+    screen: 'organization',
+    accent: '#fb923c',
+    page: true,
+  },
+  // By the person's id. `user/<id>` is the route EVERY build has — 2.0
+  // redirects it to the profile, 1.x has no `profile` route at all.
+  pro: {
+    table: 'professionals',
+    by: 'user_id',
+    cols: 'id,user_id,specialties,category,years_experience,company,title,bio,state,status,created_at',
+    screen: 'user',
+    accent: '#818cf8',
+    page: true,
+  },
+  circle: {
+    table: 'circles',
+    cols: 'id,name,description,cover_url,is_private,member_count,area,area_state,status,created_at',
+    screen: 'circle',
+    accent: '#a78bfa',
+    page: true,
+  },
 };
+
+// ── BEGIN GENERATED LABELS (tools/page-labels.py) ──
+// The app's words for specialties and page categories, from its src/i18n
+// bundles, and its state names. Do not edit by hand: re-run the tool.
+const LABELS = {
+  "en": {
+    "biz": {
+      "appliance_repair": "Appliance Repair",
+      "auto": "Auto",
+      "auto_parts": "Auto Parts",
+      "bakery": "Bakery",
+      "barber": "Barber",
+      "beauty": "Beauty",
+      "bookstore": "Bookstore",
+      "butcher": "Butcher",
+      "cafe": "Cafe",
+      "car_repair": "Car Repair",
+      "car_wash": "Car Wash",
+      "catering": "Catering",
+      "childcare": "Childcare",
+      "cleaning": "Cleaning",
+      "clothing": "Clothing",
+      "construction": "Construction",
+      "consulting": "Consulting",
+      "dental": "Dental",
+      "desserts": "Desserts & Sweets",
+      "driving_school": "Driving School",
+      "dry_cleaning": "Dry Cleaning",
+      "education": "Education",
+      "electrical": "Electrical",
+      "electronics_repair": "Electronics Repair",
+      "entertainment": "Entertainment",
+      "event_venue": "Event Venue",
+      "fast_food": "Fast Food",
+      "financial": "Financial Services",
+      "fitness": "Fitness",
+      "florist": "Florist",
+      "funeral": "Funeral Services",
+      "furniture": "Furniture",
+      "gas_station": "Gas Station",
+      "gift_shop": "Gift Shop",
+      "grocery": "Grocery",
+      "home_repair": "Handyman & Repair",
+      "hotel": "Hotel & Lodging",
+      "hvac": "Heating & Cooling",
+      "insurance": "Insurance",
+      "it_services": "IT Services",
+      "jewelry": "Jewelry",
+      "lab": "Medical Lab",
+      "landscaping": "Landscaping",
+      "legal": "Legal",
+      "liquor_store": "Liquor Store",
+      "locksmith": "Locksmith",
+      "marketing": "Marketing",
+      "meal_delivery": "Home Kitchen / Meal Delivery",
+      "medical": "Medical",
+      "mental_health": "Mental Health",
+      "mobile_shop": "Phone & Mobile",
+      "money_transfer": "Money Transfer",
+      "moving": "Moving & Storage",
+      "nails": "Nail Salon",
+      "notary": "Notary",
+      "optometry": "Optometry",
+      "other": "Other",
+      "painting": "Painting",
+      "party_rental": "Party Rental",
+      "pest_control": "Pest Control",
+      "pet_store": "Pet Store",
+      "pharmacy": "Pharmacy",
+      "photography": "Photography",
+      "physical_therapy": "Physical Therapy",
+      "plumbing": "Plumbing",
+      "real_estate": "Real Estate",
+      "restaurant": "Restaurant",
+      "retail": "Retail",
+      "roofing": "Roofing",
+      "salon": "Salon",
+      "spa": "Spa & Massage",
+      "tattoo": "Tattoo & Piercing",
+      "tax": "Tax & Accounting",
+      "taxi": "Taxi & Rideshare",
+      "tea_house": "Tea House",
+      "tire_shop": "Tire Shop",
+      "translation": "Translation",
+      "travel": "Travel",
+      "trucker_food": "Trucker Food Delivery",
+      "trucking": "Trucking",
+      "veterinary": "Veterinary"
+    },
+    "craft": "{{craft}} Professional",
+    "org": {
+      "charity": "Charity & Aid",
+      "community_center": "Community Center",
+      "consulate": "Embassy & Consulate",
+      "cultural_center": "Cultural Center",
+      "diaspora_association": "Diaspora Association",
+      "education": "Language & Weekend School",
+      "legal_aid": "Legal Aid & Immigrant Services",
+      "media": "Diaspora Media",
+      "other": "Other",
+      "religious_center": "Religious Center",
+      "sports_club": "Sports Club",
+      "student_association": "Student Association",
+      "womens_org": "Women's Organization",
+      "youth_org": "Youth Organization"
+    },
+    "proCategory": {
+      "arts": "Arts",
+      "business": "Business",
+      "community_leader": "Community leader",
+      "construction": "Construction & trades",
+      "education": "Education",
+      "engineering": "Engineering",
+      "finance": "Finance",
+      "government": "Government",
+      "hospitality": "Hospitality",
+      "law_enforcement": "Law enforcement",
+      "legal": "Legal",
+      "media": "Media",
+      "medical": "Medical",
+      "nonprofit": "Nonprofit",
+      "other": "Other",
+      "politics": "Politics",
+      "public_sector": "Public sector",
+      "real_estate": "Real estate",
+      "religious_leader": "Religious leader",
+      "science": "Science",
+      "social_work": "Social work",
+      "sports": "Sports & fitness",
+      "tech": "Technology",
+      "transportation": "Transportation",
+      "youth_community_leader": "Youth community leader"
+    },
+    "spec": {
+      "accountant": "Accountant / CPA",
+      "auto_body": "Auto body",
+      "auto_mechanic": "Auto mechanic",
+      "baker": "Baker",
+      "barber": "Barber",
+      "beauty_expert": "Beauty expert",
+      "bookkeeper": "Bookkeeper",
+      "business_lawyer": "Business lawyer",
+      "business_owner": "Business owner",
+      "car_dealer": "Car dealer",
+      "carpenter": "Carpenter",
+      "caterer": "Caterer",
+      "chef": "Chef",
+      "community_leader": "Community leader",
+      "data_analyst": "Data analyst",
+      "daycare": "Daycare",
+      "dentist": "Dentist",
+      "designer": "Designer",
+      "device_repair": "Phone & computer repair",
+      "doctor": "Doctor",
+      "driving_instructor": "Driving instructor",
+      "electrician": "Electrician",
+      "event_planner": "Event planner",
+      "family_lawyer": "Family lawyer",
+      "financial_advisor": "Financial advisor",
+      "general_contractor": "General contractor",
+      "hair_stylist": "Hair stylist",
+      "handyman": "Handyman",
+      "home_health_aide": "Home health aide",
+      "home_inspector": "Home inspector",
+      "house_cleaner": "House cleaner",
+      "hvac_technician": "HVAC technician",
+      "imam": "Imam",
+      "immigration_lawyer": "Immigration lawyer",
+      "insurance_agent": "Insurance agent",
+      "it_support": "IT support",
+      "language_teacher": "Language teacher",
+      "lash_brow_artist": "Lash & brow artist",
+      "locksmith": "Locksmith",
+      "makeup_artist": "Makeup artist",
+      "massage_therapist": "Massage therapist",
+      "mortgage_broker": "Mortgage broker",
+      "movers": "Movers",
+      "nail_technician": "Nail technician",
+      "nanny": "Nanny / childcare",
+      "notary": "Notary",
+      "nurse": "Nurse",
+      "optometrist": "Optometrist",
+      "painter": "Painter",
+      "paralegal": "Paralegal",
+      "pediatrician": "Pediatrician",
+      "pharmacist": "Pharmacist",
+      "photographer": "Photographer",
+      "physical_therapist": "Physical therapist",
+      "plumber": "Plumber",
+      "property_manager": "Property manager",
+      "quran_teacher": "Quran teacher",
+      "real_estate_lawyer": "Real estate lawyer",
+      "realtor": "Realtor",
+      "social_worker": "Social worker",
+      "software_engineer": "Software engineer",
+      "tailor": "Tailor",
+      "tax_preparer": "Tax preparer",
+      "teacher": "Teacher",
+      "therapist": "Therapist",
+      "translator": "Translator",
+      "truck_driver": "Truck driver (CDL)",
+      "tutor": "Tutor",
+      "volunteer_coordinator": "Volunteer coordinator"
+    },
+    "years": {
+      "0": "Under 1 year",
+      "1": "1–2 years",
+      "10": "10+ years",
+      "3": "3–5 years",
+      "6": "6–10 years"
+    }
+  },
+  "ru": {
+    "biz": {
+      "appliance_repair": "Ремонт бытовой техники",
+      "auto": "Авто",
+      "auto_parts": "Автозапчасти",
+      "bakery": "Пекарня",
+      "barber": "Барбершоп",
+      "beauty": "Красота",
+      "bookstore": "Книжный магазин",
+      "butcher": "Мясная лавка",
+      "cafe": "Кафе",
+      "car_repair": "Авторемонт",
+      "car_wash": "Автомойка",
+      "catering": "Кейтеринг",
+      "childcare": "Детский уход",
+      "cleaning": "Уборка",
+      "clothing": "Одежда",
+      "construction": "Строительство",
+      "consulting": "Консалтинг",
+      "dental": "Стоматология",
+      "desserts": "Десерты и сладости",
+      "driving_school": "Автошкола",
+      "dry_cleaning": "Химчистка",
+      "education": "Образование",
+      "electrical": "Электрика",
+      "electronics_repair": "Ремонт техники",
+      "entertainment": "Развлечения",
+      "event_venue": "Площадка для мероприятий",
+      "fast_food": "Фастфуд",
+      "financial": "Финансовые услуги",
+      "fitness": "Фитнес",
+      "florist": "Цветочный магазин",
+      "funeral": "Ритуальные услуги",
+      "furniture": "Мебель",
+      "gas_station": "Заправка",
+      "gift_shop": "Магазин подарков",
+      "grocery": "Продукты",
+      "home_repair": "Мастер на час",
+      "hotel": "Гостиницы и жильё",
+      "hvac": "Отопление и кондиционеры",
+      "insurance": "Страхование",
+      "it_services": "IT-услуги",
+      "jewelry": "Ювелирные изделия",
+      "lab": "Медицинская лаборатория",
+      "landscaping": "Ландшафтные работы",
+      "legal": "Юридические",
+      "liquor_store": "Алкогольный магазин",
+      "locksmith": "Замки и ключи",
+      "marketing": "Маркетинг",
+      "meal_delivery": "Домашняя кухня / доставка еды",
+      "medical": "Медицина",
+      "mental_health": "Психологическая помощь",
+      "mobile_shop": "Телефоны и связь",
+      "money_transfer": "Перевод денег",
+      "moving": "Переезд и хранение",
+      "nails": "Маникюрный салон",
+      "notary": "Нотариус",
+      "optometry": "Оптометрия",
+      "other": "Другое",
+      "painting": "Малярные работы",
+      "party_rental": "Аренда для праздников",
+      "pest_control": "Борьба с вредителями",
+      "pet_store": "Зоомагазин",
+      "pharmacy": "Аптека",
+      "photography": "Фотография",
+      "physical_therapy": "Физиотерапия",
+      "plumbing": "Сантехника",
+      "real_estate": "Недвижимость",
+      "restaurant": "Ресторан",
+      "retail": "Торговля",
+      "roofing": "Кровельные работы",
+      "salon": "Салон",
+      "spa": "Спа и массаж",
+      "tattoo": "Тату и пирсинг",
+      "tax": "Налоги и бухгалтерия",
+      "taxi": "Такси и попутчики",
+      "tea_house": "Чайхана",
+      "tire_shop": "Шиномонтаж",
+      "translation": "Переводы",
+      "travel": "Туризм",
+      "trucker_food": "Доставка еды дальнобойщикам",
+      "trucking": "Грузоперевозки",
+      "veterinary": "Ветеринария"
+    },
+    "craft": "Специалист: {{craft}}",
+    "org": {
+      "charity": "Благотворительность и помощь",
+      "community_center": "Общественный центр",
+      "consulate": "Посольство и консульство",
+      "cultural_center": "Культурный центр",
+      "diaspora_association": "Ассоциация диаспоры",
+      "education": "Языковая и воскресная школа",
+      "legal_aid": "Юридическая помощь и услуги иммигрантам",
+      "media": "СМИ диаспоры",
+      "other": "Другое",
+      "religious_center": "Религиозный центр",
+      "sports_club": "Спортивный клуб",
+      "student_association": "Студенческая ассоциация",
+      "womens_org": "Женская организация",
+      "youth_org": "Молодёжная организация"
+    },
+    "proCategory": {
+      "arts": "Искусство",
+      "business": "Бизнес",
+      "community_leader": "Лидер сообщества",
+      "construction": "Строительство и ремёсла",
+      "education": "Образование",
+      "engineering": "Инженерия",
+      "finance": "Финансы",
+      "government": "Государственная служба",
+      "hospitality": "Гостеприимство",
+      "law_enforcement": "Правоохранительные органы",
+      "legal": "Юридические",
+      "media": "Медиа",
+      "medical": "Медицина",
+      "nonprofit": "НКО",
+      "other": "Другое",
+      "politics": "Политика",
+      "public_sector": "Государственный сектор",
+      "real_estate": "Недвижимость",
+      "religious_leader": "Религиозный лидер",
+      "science": "Наука",
+      "social_work": "Социальная работа",
+      "sports": "Спорт и фитнес",
+      "tech": "Технологии",
+      "transportation": "Транспорт",
+      "youth_community_leader": "Молодёжный лидер сообщества"
+    },
+    "spec": {
+      "accountant": "Бухгалтер / CPA",
+      "auto_body": "Кузовной ремонт",
+      "auto_mechanic": "Автомеханик",
+      "baker": "Пекарь",
+      "barber": "Барбер",
+      "beauty_expert": "Бьюти-мастер",
+      "bookkeeper": "Счетовод",
+      "business_lawyer": "Бизнес-юрист",
+      "business_owner": "Владелец бизнеса",
+      "car_dealer": "Автодилер",
+      "carpenter": "Плотник",
+      "caterer": "Кейтеринг",
+      "chef": "Повар",
+      "community_leader": "Лидер общины",
+      "data_analyst": "Аналитик данных",
+      "daycare": "Детский сад",
+      "dentist": "Стоматолог",
+      "designer": "Дизайнер",
+      "device_repair": "Ремонт телефонов и компьютеров",
+      "doctor": "Врач",
+      "driving_instructor": "Инструктор по вождению",
+      "electrician": "Электрик",
+      "event_planner": "Организатор мероприятий",
+      "family_lawyer": "Семейный адвокат",
+      "financial_advisor": "Финансовый консультант",
+      "general_contractor": "Генподрядчик",
+      "hair_stylist": "Парикмахер-стилист",
+      "handyman": "Мастер на все руки",
+      "home_health_aide": "Сиделка",
+      "home_inspector": "Инспектор жилья",
+      "house_cleaner": "Уборка домов",
+      "hvac_technician": "Мастер по отоплению и кондиционерам",
+      "imam": "Имам",
+      "immigration_lawyer": "Иммиграционный адвокат",
+      "insurance_agent": "Страховой агент",
+      "it_support": "IT-поддержка",
+      "language_teacher": "Преподаватель языка",
+      "lash_brow_artist": "Мастер по ресницам и бровям",
+      "locksmith": "Слесарь по замкам",
+      "makeup_artist": "Визажист",
+      "massage_therapist": "Массажист",
+      "mortgage_broker": "Ипотечный брокер",
+      "movers": "Грузчики и переезды",
+      "nail_technician": "Мастер маникюра",
+      "nanny": "Няня",
+      "notary": "Нотариус",
+      "nurse": "Медсестра",
+      "optometrist": "Оптометрист",
+      "painter": "Маляр",
+      "paralegal": "Помощник юриста",
+      "pediatrician": "Педиатр",
+      "pharmacist": "Фармацевт",
+      "photographer": "Фотограф",
+      "physical_therapist": "Физиотерапевт",
+      "plumber": "Сантехник",
+      "property_manager": "Управляющий недвижимостью",
+      "quran_teacher": "Учитель Корана",
+      "real_estate_lawyer": "Адвокат по недвижимости",
+      "realtor": "Риелтор",
+      "social_worker": "Социальный работник",
+      "software_engineer": "Программист",
+      "tailor": "Портной",
+      "tax_preparer": "Налоговый консультант",
+      "teacher": "Учитель",
+      "therapist": "Психотерапевт",
+      "translator": "Переводчик",
+      "truck_driver": "Водитель грузовика (CDL)",
+      "tutor": "Репетитор",
+      "volunteer_coordinator": "Координатор волонтёров"
+    },
+    "years": {
+      "0": "Меньше года",
+      "1": "1–2 года",
+      "10": "10+ лет",
+      "3": "3–5 лет",
+      "6": "6–10 лет"
+    }
+  },
+  "uz": {
+    "biz": {
+      "appliance_repair": "Maishiy texnika ta'miri",
+      "auto": "Avto",
+      "auto_parts": "Avtoehtiyot qismlar",
+      "bakery": "Nonvoyxona",
+      "barber": "Sartaroshxona",
+      "beauty": "Go'zallik",
+      "bookstore": "Kitob do'koni",
+      "butcher": "Qassobxona",
+      "cafe": "Kafe",
+      "car_repair": "Avtota'mirlash",
+      "car_wash": "Avtomoyka",
+      "catering": "Keytering",
+      "childcare": "Bolalar parvarishi",
+      "cleaning": "Tozalash",
+      "clothing": "Kiyim-kechak",
+      "construction": "Qurilish",
+      "consulting": "Konsalting",
+      "dental": "Stomatologiya",
+      "desserts": "Desertlar va shirinliklar",
+      "driving_school": "Haydovchilik maktabi",
+      "dry_cleaning": "Quruq tozalash",
+      "education": "Ta'lim",
+      "electrical": "Elektr ishlari",
+      "electronics_repair": "Texnika ta'miri",
+      "entertainment": "Ko'ngilochar",
+      "event_venue": "Tadbirlar zali",
+      "fast_food": "Fastfud",
+      "financial": "Moliyaviy xizmatlar",
+      "fitness": "Fitnes",
+      "florist": "Gul do'koni",
+      "funeral": "Marosim xizmatlari",
+      "furniture": "Mebel",
+      "gas_station": "Yoqilg'i shoxobchasi",
+      "gift_shop": "Sovg'alar do'koni",
+      "grocery": "Oziq-ovqat",
+      "home_repair": "Uy ustasi",
+      "hotel": "Mehmonxona va turar joy",
+      "hvac": "Isitish va sovutish",
+      "insurance": "Sug'urta",
+      "it_services": "IT xizmatlari",
+      "jewelry": "Zargarlik buyumlari",
+      "lab": "Tibbiy laboratoriya",
+      "landscaping": "Obodonlashtirish",
+      "legal": "Yuridik",
+      "liquor_store": "Spirtli ichimliklar do'koni",
+      "locksmith": "Qulf ustasi",
+      "marketing": "Marketing",
+      "meal_delivery": "Uy oshxonasi / ovqat yetkazish",
+      "medical": "Tibbiy",
+      "mental_health": "Ruhiy salomatlik",
+      "mobile_shop": "Telefonlar va aloqa",
+      "money_transfer": "Pul o'tkazish",
+      "moving": "Ko'chish xizmati",
+      "nails": "Manikyur saloni",
+      "notary": "Notarius",
+      "optometry": "Optometriya",
+      "other": "Boshqa",
+      "painting": "Bo'yoq ishlari",
+      "party_rental": "Bayram jihozlari ijarasi",
+      "pest_control": "Zararkunandalarga qarshi kurash",
+      "pet_store": "Uy hayvonlari do'koni",
+      "pharmacy": "Dorixona",
+      "photography": "Fotosurat",
+      "physical_therapy": "Fizioterapiya",
+      "plumbing": "Santexnika",
+      "real_estate": "Ko'chmas mulk",
+      "restaurant": "Restoran",
+      "retail": "Do'kon",
+      "roofing": "Tom yopish ishlari",
+      "salon": "Salon",
+      "spa": "Spa va massaj",
+      "tattoo": "Tatu va pirsing",
+      "tax": "Soliq va buxgalteriya",
+      "taxi": "Taksi va hamrohlik",
+      "tea_house": "Choyxona",
+      "tire_shop": "Shinalar ustaxonasi",
+      "translation": "Tarjima",
+      "travel": "Sayohat",
+      "trucker_food": "Haydovchilarga ovqat yetkazish",
+      "trucking": "Yuk tashish",
+      "veterinary": "Veterinariya"
+    },
+    "craft": "{{craft}} bo‘yicha mutaxassis",
+    "org": {
+      "charity": "Xayriya va yordam",
+      "community_center": "Jamiyat markazi",
+      "consulate": "Elchixona va konsullik",
+      "cultural_center": "Madaniyat markazi",
+      "diaspora_association": "Diaspora uyushmasi",
+      "education": "Til va yakshanba maktabi",
+      "legal_aid": "Yuridik yordam va muhojirlar xizmatlari",
+      "media": "Diaspora OAV",
+      "other": "Boshqa",
+      "religious_center": "Diniy markaz",
+      "sports_club": "Sport klubi",
+      "student_association": "Talabalar uyushmasi",
+      "womens_org": "Ayollar tashkiloti",
+      "youth_org": "Yoshlar tashkiloti"
+    },
+    "proCategory": {
+      "arts": "San'at",
+      "business": "Biznes",
+      "community_leader": "Hamjamiyat yetakchisi",
+      "construction": "Qurilish va hunarmandchilik",
+      "education": "Ta’lim",
+      "engineering": "Muhandislik",
+      "finance": "Moliya",
+      "government": "Davlat boshqaruvi",
+      "hospitality": "Mehmondo‘stlik",
+      "law_enforcement": "Huquqni muhofaza qilish",
+      "legal": "Yuridik",
+      "media": "Media",
+      "medical": "Tibbiyot",
+      "nonprofit": "Notijorat",
+      "other": "Boshqa",
+      "politics": "Siyosat",
+      "public_sector": "Davlat sektori",
+      "real_estate": "Ko‘chmas mulk",
+      "religious_leader": "Diniy yetakchi",
+      "science": "Fan",
+      "social_work": "Ijtimoiy ish",
+      "sports": "Sport va fitnes",
+      "tech": "Texnologiya",
+      "transportation": "Transport",
+      "youth_community_leader": "Yoshlar yetakchisi"
+    },
+    "spec": {
+      "accountant": "Buxgalter / CPA",
+      "auto_body": "Kuzov ta’miri",
+      "auto_mechanic": "Avtomexanik",
+      "baker": "Novvoy",
+      "barber": "Sartarosh",
+      "beauty_expert": "Go‘zallik ustasi",
+      "bookkeeper": "Hisobchi",
+      "business_lawyer": "Biznes yuristi",
+      "business_owner": "Biznes egasi",
+      "car_dealer": "Avtodiler",
+      "carpenter": "Duradgor",
+      "caterer": "Ketering",
+      "chef": "Oshpaz",
+      "community_leader": "Jamoa yetakchisi",
+      "data_analyst": "Ma’lumotlar tahlilchisi",
+      "daycare": "Bolalar bog‘chasi",
+      "dentist": "Stomatolog",
+      "designer": "Dizayner",
+      "device_repair": "Telefon va kompyuter ta’miri",
+      "doctor": "Shifokor",
+      "driving_instructor": "Haydovchilik instruktori",
+      "electrician": "Elektrik",
+      "event_planner": "Tadbir tashkilotchisi",
+      "family_lawyer": "Oilaviy advokat",
+      "financial_advisor": "Moliyaviy maslahatchi",
+      "general_contractor": "Bosh pudratchi",
+      "hair_stylist": "Sartarosh-stilist",
+      "handyman": "Usta",
+      "home_health_aide": "Uyda parvarish qiluvchi",
+      "home_inspector": "Uy inspektori",
+      "house_cleaner": "Uy tozalovchi",
+      "hvac_technician": "Isitish va konditsioner ustasi",
+      "imam": "Imom",
+      "immigration_lawyer": "Immigratsiya advokati",
+      "insurance_agent": "Sug‘urta agenti",
+      "it_support": "IT yordam",
+      "language_teacher": "Til o‘qituvchisi",
+      "lash_brow_artist": "Kiprik va qosh ustasi",
+      "locksmith": "Qulfsoz",
+      "makeup_artist": "Vizajist",
+      "massage_therapist": "Massajchi",
+      "mortgage_broker": "Ipoteka brokeri",
+      "movers": "Ko‘chirish xizmati",
+      "nail_technician": "Manikyur ustasi",
+      "nanny": "Enaga",
+      "notary": "Notarius",
+      "nurse": "Hamshira",
+      "optometrist": "Optometrist",
+      "painter": "Bo‘yoqchi",
+      "paralegal": "Yurist yordamchisi",
+      "pediatrician": "Pediatr",
+      "pharmacist": "Farmatsevt",
+      "photographer": "Fotograf",
+      "physical_therapist": "Fizioterapevt",
+      "plumber": "Santexnik",
+      "property_manager": "Mulk boshqaruvchisi",
+      "quran_teacher": "Qur’on ustozi",
+      "real_estate_lawyer": "Ko‘chmas mulk advokati",
+      "realtor": "Rieltor",
+      "social_worker": "Ijtimoiy xodim",
+      "software_engineer": "Dasturchi",
+      "tailor": "Tikuvchi",
+      "tax_preparer": "Soliq hisobotchisi",
+      "teacher": "O‘qituvchi",
+      "therapist": "Psixoterapevt",
+      "translator": "Tarjimon",
+      "truck_driver": "Yuk mashinasi haydovchisi (CDL)",
+      "tutor": "Repetitor",
+      "volunteer_coordinator": "Ko‘ngillilar koordinatori"
+    },
+    "years": {
+      "0": "1 yildan kam",
+      "1": "1–2 yil",
+      "10": "10+ yil",
+      "3": "3–5 yil",
+      "6": "6–10 yil"
+    }
+  }
+};
+const REGIONS = {"AB": "Alberta", "AK": "Alaska", "AL": "Alabama", "AR": "Arkansas", "AZ": "Arizona", "BC": "British Columbia", "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DC": "Washington D.C.", "DE": "Delaware", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "IA": "Iowa", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "MA": "Massachusetts", "MB": "Manitoba", "MD": "Maryland", "ME": "Maine", "MI": "Michigan", "MN": "Minnesota", "MO": "Missouri", "MS": "Mississippi", "MT": "Montana", "NB": "New Brunswick", "NC": "North Carolina", "ND": "North Dakota", "NE": "Nebraska", "NH": "New Hampshire", "NJ": "New Jersey", "NL": "Newfoundland & Labrador", "NM": "New Mexico", "NS": "Nova Scotia", "NT": "Northwest Territories", "NU": "Nunavut", "NV": "Nevada", "NY": "New York", "OH": "Ohio", "OK": "Oklahoma", "ON": "Ontario", "OR": "Oregon", "PA": "Pennsylvania", "PE": "Prince Edward Island", "QC": "Quebec", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota", "SK": "Saskatchewan", "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VA": "Virginia", "VT": "Vermont", "WA": "Washington", "WI": "Wisconsin", "WV": "West Virginia", "WY": "Wyoming", "YT": "Yukon"};
+// ── END GENERATED LABELS ──
 
 // ── Copy, in the app's three languages ────────────────────────────────────────
 //
@@ -166,6 +836,7 @@ const COPY = {
     kinds: {
       housing: 'Housing', job: 'Job', sale: 'For sale', travel: 'Travel', deal: 'Deal',
       event: 'Event', charity: 'Charity', question: 'Ask Mahalla', news: 'News', ride: 'Taxi & rides',
+      business: 'Business', community: 'Community', pro: 'Professional', circle: 'Circle',
     },
     open: 'Open in Mahallify',
     get: 'Get Mahallify',
@@ -203,11 +874,21 @@ const COPY = {
     condition: { new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair', poor: 'Poor' },
     need: { money: 'Funds', volunteers: 'Volunteers', goods: 'Goods', food: 'Food', shelter: 'Place to stay', transport: 'Rides', blood: 'Blood donors', services: 'Professional help' },
     format: { in_person: 'In person', online: 'Online', hybrid: 'In person + online' },
+    pages: {
+      category: 'Category', rating: 'Rating', experience: 'Experience', company: 'Company', joining: 'Joining',
+      reviews: (avg, n) => `${avg} ★ · ${n === 1 ? '1 review' : `${n} reviews`}`,
+      members: n => (n === 1 ? '1 member' : `${n} members`),
+      private: 'Private · members are approved',
+      public: 'Public · anyone can join',
+      missingTitle: 'This page isn’t available',
+      more: { business: 'Photos, posts and contacts are in the app.', community: 'Photos, posts and contacts are in the app.', pro: 'Message them in the app.', circle: 'The conversation is in the app.' },
+    },
   },
   ru: {
     kinds: {
       housing: 'Жильё', job: 'Работа', sale: 'Продажа', travel: 'Поездки', deal: 'Скидка',
       event: 'Событие', charity: 'Благотворительность', question: 'Спроси махаллю', news: 'Новости', ride: 'Такси и поездки',
+      business: 'Бизнес', community: 'Сообщество', pro: 'Специалист', circle: 'Круг',
     },
     open: 'Открыть в Mahallify',
     get: 'Скачать Mahallify',
@@ -245,11 +926,21 @@ const COPY = {
     condition: { new: 'Новый', like_new: 'Как новый', good: 'Хорошее', fair: 'Удовлетворительное', poor: 'Плохое' },
     need: { money: 'Деньги', volunteers: 'Волонтёры', goods: 'Вещи', food: 'Еда', shelter: 'Жильё', transport: 'Транспорт', blood: 'Доноры крови', services: 'Помощь специалиста' },
     format: { in_person: 'Очно', online: 'Онлайн', hybrid: 'Очно + онлайн' },
+    pages: {
+      category: 'Категория', rating: 'Рейтинг', experience: 'Опыт', company: 'Компания', joining: 'Вступление',
+      reviews: (avg, n) => `${avg} ★ · отзывов: ${n}`,
+      members: n => `Участников: ${n}`,
+      private: 'Закрытый · участников одобряют',
+      public: 'Открытый · вступить может любой',
+      missingTitle: 'Эта страница недоступна',
+      more: { business: 'Фото, посты и контакты — в приложении.', community: 'Фото, посты и контакты — в приложении.', pro: 'Написать можно в приложении.', circle: 'Общение — в приложении.' },
+    },
   },
   uz: {
     kinds: {
       housing: 'Uy-joy', job: 'Ish', sale: 'Sotuv', travel: 'Safar', deal: 'Chegirma',
       event: 'Tadbir', charity: 'Xayriya', question: 'Mahalladan so‘rang', news: 'Yangiliklar', ride: 'Taksi va qatnov',
+      business: 'Biznes', community: 'Hamjamiyat', pro: 'Mutaxassis', circle: 'Doira',
     },
     open: 'Mahallify’da ochish',
     get: 'Mahallify’ni yuklab oling',
@@ -287,6 +978,15 @@ const COPY = {
     condition: { new: 'Yangi', like_new: 'Yangidek', good: 'Yaxshi', fair: 'Qoniqarli', poor: 'Yomon' },
     need: { money: "Mablag'", volunteers: "Ko'ngillilar", goods: 'Buyumlar', food: 'Oziq-ovqat', shelter: 'Turar joy', transport: 'Transport', blood: 'Qon donorlari', services: 'Mutaxassis yordami' },
     format: { in_person: 'Jonli', online: 'Onlayn', hybrid: 'Jonli + onlayn' },
+    pages: {
+      category: 'Toifa', rating: 'Reyting', experience: 'Tajriba', company: 'Kompaniya', joining: 'A’zolik',
+      reviews: (avg, n) => `${avg} ★ · ${n} ta sharh`,
+      members: n => `${n} a’zo`,
+      private: 'Yopiq · a’zolar tasdiqlanadi',
+      public: 'Ochiq · istalgan kishi qo‘shila oladi',
+      missingTitle: 'Bu sahifa mavjud emas',
+      more: { business: 'Rasmlar, postlar va kontaktlar — ilovada.', community: 'Rasmlar, postlar va kontaktlar — ilovada.', pro: 'Ilovada xabar yozishingiz mumkin.', circle: 'Suhbat — ilovada.' },
+    },
   },
 };
 const LOCALES = { en: 'en-US', ru: 'ru-RU', uz: 'uz-Latn-UZ' };
@@ -330,11 +1030,39 @@ async function bylineOf(db, kind, row) {
   return String(people[0]?.name || '').trim().split(/\s+/)[0] || null;
 }
 
+/** Whether the row may be shown. Posts and pages: approved and active.
+ *  A professional: what the app's Directory lists (approved, listed, or a 2.0
+ *  listing whose badge is in review — a 1.x application in review has no
+ *  specialties and stays private, as 00245 keeps it). A circle: approved. */
+function isLive(kind, row) {
+  if (kind === 'pro') {
+    if (row.status === 'approved' || row.status === 'listed') return true;
+    return row.status === 'pending' && Array.isArray(row.specialties) && row.specialties.length > 0;
+  }
+  return row.status === 'approved' && row.is_active !== false;
+}
+
+/** A professional's own name and state live on the profile. First name only. */
+async function personOf(db, row) {
+  if (!row.user_id || !UUID.test(row.user_id)) return null;
+  const people = await rest(db, `profiles?select=name,state&id=eq.${row.user_id}&limit=1`).catch(() => []);
+  const p = people[0];
+  if (!p) return null;
+  return { first: String(p.name || '').trim().split(/\s+/)[0] || null, state: p.state || null };
+}
+
 async function readPost(db, kind, id) {
   const src = KINDS[kind];
-  const rows = await rest(db, `${src.table}?select=${src.cols}&id=eq.${id}&limit=1`);
+  const rows = await rest(db, `${src.table}?select=${src.cols}&${src.by || 'id'}=eq.${id}&limit=1`);
   const row = rows[0];
-  if (!row || row.status !== 'approved' || row.is_active === false) return null;
+  if (!row || !isLive(kind, row)) return null;
+  if (src.page) {
+    const person = kind === 'pro' ? await personOf(db, row) : null;
+    // A professional is drawn with no photo (see the top of the file).
+    const photo = kind === 'pro' ? null : row.cover_url || row.logo_url || null;
+    const ours = typeof photo === 'string' && photo.startsWith(`${db.url}/storage/v1/object/public/`);
+    return { row, photo: ours ? photo : null, byline: null, person };
+  }
   const [photo, byline] = await Promise.all([
     (async () => {
       if (src.photos) {
@@ -495,7 +1223,7 @@ function priceOf(row, lang) {
 }
 
 /** The headline figure under the title, and the facts list under that. */
-function factsOf(kind, row, lang) {
+function factsOf(kind, row, lang, person) {
   const c = COPY[lang];
   const L = c.labels;
   const where = placeOf(row);
@@ -573,14 +1301,64 @@ function factsOf(kind, row, lang) {
       add(L.seats, row.seats);
       add(L.where, where);
       break;
+    case 'business':
+    case 'community': {
+      const P = c.pages;
+      lead = String(row.tagline || '').trim() || null;
+      add(P.category, LABELS[lang][kind === 'business' ? 'biz' : 'org'][row.category]);
+      const n = Number(row.review_count || 0);
+      if (kind === 'business' && n > 0) add(P.rating, P.reviews(Number(row.avg_rating || 0).toFixed(1), n));
+      add(L.where, where);
+      break;
+    }
+    case 'pro': {
+      const P = c.pages;
+      lead = proSpecialty(row, lang);
+      add(P.experience, row.years_experience == null ? null : yearsLabel(row.years_experience, lang));
+      add(P.company, String(row.company || '').trim() || null);
+      // Where the app's Directory places them: the profile's state first.
+      add(L.where, regionName(person?.state || row.state));
+      break;
+    }
+    case 'circle': {
+      const P = c.pages;
+      lead = P.members(Number(row.member_count || 0));
+      add(P.joining, row.is_private ? P.private : P.public);
+      add(L.where, String(row.area || '').trim() || regionName(row.area_state));
+      break;
+    }
   }
   return { lead, facts };
+}
+
+/** What a professional does, in the app's words: the first specialty (a key,
+ *  or the member's own words), else "Medical Professional" off the category. */
+function proSpecialty(row, lang) {
+  const L = LABELS[lang];
+  const first = Array.isArray(row.specialties) ? row.specialties[0] : null;
+  if (first) return L.spec[first] || String(first);
+  const craft = L.proCategory[row.category];
+  return craft ? L.craft.replace('{{craft}}', craft) : null;
+}
+
+/** `years_experience` is a bracket's lower bound (0, 1, 3, 6, 10). */
+function yearsLabel(n, lang) {
+  const years = LABELS[lang].years;
+  const bracket = [10, 6, 3, 1, 0].find(b => Number(n) >= b);
+  return bracket == null ? null : years[String(bracket)] || null;
+}
+
+/** A state or province code, as the place it is. */
+function regionName(code) {
+  const k = String(code || '').trim().toUpperCase();
+  return REGIONS[k] || k || null;
 }
 
 /** The post's own words, cut to a readable excerpt. Never a charity story. */
 function excerptOf(kind, row, max = 420) {
   if (kind === 'charity') return null;
-  const raw = String((kind === 'question' ? row.body : row.description) || '')
+  const text = kind === 'question' ? row.body : kind === 'pro' ? row.bio : row.description;
+  const raw = String(text || '')
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -647,15 +1425,28 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
   const c = COPY[lang];
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
-  const accent = src?.accent || '#4f7dff';
+  const isPage = !!src?.page;
+  // A page's own colour, when its owner chose one.
+  const themed = isPage && /^#[0-9a-f]{6}$/i.test(String(post?.row.theme_color || '')) ? post.row.theme_color : null;
+  const accent = themed || src?.accent || '#4f7dff';
+  const named = !found
+    ? null
+    : kind === 'pro'
+      ? post.person?.first
+      : isPage
+        ? post.row.name
+        : post.row.title;
   const title = found
-    ? String(post.row.title || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || c.kinds[kind]
-    : c.missingTitle;
-  const { lead, facts } = found ? factsOf(kind, post.row, lang) : { lead: null, facts: [] };
-  const status = found ? statusOf(kind, post.row, lang) : null;
+    ? String(named || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || c.kinds[kind]
+    : isPage
+      ? c.pages.missingTitle
+      : c.missingTitle;
+  const { lead, facts } = found ? factsOf(kind, post.row, lang, post.person) : { lead: null, facts: [] };
+  const status = found && !isPage ? statusOf(kind, post.row, lang) : null;
   const excerpt = found ? excerptOf(kind, post.row) : null;
   const photo = found ? post.photo : null;
-  const posted = found ? postedOn(post.row.created_at, lang) : null;
+  // A page is not dated: it does not end, and the day it was made says nothing.
+  const posted = found && !isPage ? postedOn(post.row.created_at, lang) : null;
   const byline = found && post.byline ? post.byline : null;
   const kindLabel = (kind && c.kinds[kind]) || 'Mahallify';
 
@@ -694,7 +1485,7 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
 <meta name="color-scheme" content="dark" />
 ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(appUrl)}" />` : ''}
 <meta property="og:site_name" content="Mahallify" />
-<meta property="og:type" content="article" />
+<meta property="og:type" content="${isPage ? (kind === 'pro' ? 'profile' : 'website') : 'article'}" />
 <meta property="og:locale" content="${OG_LOCALES[lang]}" />
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(ogDescription)}" />
@@ -790,7 +1581,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
             }${byline && posted ? ' · ' : ''}${posted ? esc(posted) : ''}</span></div>`
           : ''
       }
-      <p class="more">${esc(c.more)}</p>
+      <p class="more">${esc(isPage ? c.pages.more[kind] : c.more)}</p>
     </div>
   </article>`
       : `<article class="card missing">
