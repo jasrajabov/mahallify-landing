@@ -875,8 +875,10 @@
 /* ═══ LANGUAGES ══════════════════════════════════════════════════ */
 .langs {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
 }
 .lang {
   background: var(--glass);
@@ -907,16 +909,6 @@
 .lang span {
   font-size: 11.5px;
   color: var(--fg-4);
-}
-@media (max-width: 900px) {
-  .langs {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-@media (max-width: 520px) {
-  .langs {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 /* ═══ SUPPORT ════════════════════════════════════════════════════ */
