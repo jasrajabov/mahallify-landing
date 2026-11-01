@@ -165,6 +165,20 @@ const KINDS = {
     screen: 'ride',
     accent: '#facc15',
   },
+  // 00275. Until that migration is in a database, its page reads "isn't
+  // available" (the table is a 400), which is the honest answer.
+  service: {
+    table: 'service_posts',
+    cols: 'id,title,description,mode,service,price,price_type,image_urls,city,state,status,is_active,availability,user_id,created_at',
+    screen: 'service',
+    accent: '#a78bfa',
+  },
+  lost: {
+    table: 'lost_found_posts',
+    cols: 'id,title,description,mode,item,happened_on,image_urls,city,state,status,is_active,availability,user_id,created_at',
+    screen: 'lost',
+    accent: '#fbbf24',
+  },
   // ── Not posts: `page` kinds have no byline, no date and their own copy. ──
   business: {
     table: 'businesses',
@@ -840,7 +854,7 @@ const COPY = {
   en: {
     kinds: {
       housing: 'Housing', job: 'Job', sale: 'For sale', travel: 'Travel', deal: 'Deal',
-      event: 'Event', charity: 'Charity', question: 'Ask Mahalla', news: 'News', ride: 'Taxi & rides',
+      event: 'Event', charity: 'Charity', question: 'Ask Mahalla', news: 'News', ride: 'Taxi & rides', service: "Services", lost: "Lost & found",
       business: 'Business', community: 'Community', pro: 'Professional', circle: 'Circle',
     },
     open: 'Open in Mahallify',
@@ -872,11 +886,17 @@ const COPY = {
       departs: 'Departs', returns: 'Returns', format: 'Format', venue: 'Venue', admission: 'Admission',
       needs: 'Needs', ends: 'Ends', source: 'Source', published: 'Published', routes: 'Routes',
       seats: 'Seats', price: 'Price',
+      work: "Type of work", covers: "Area covered", what: "What it is",
     },
     per: { hourly: '/hr', daily: '/day', weekly: '/wk', monthly: '/mo', yearly: '/yr' },
     jobType: { full_time: 'Full Time', part_time: 'Part Time', contract: 'Contract', temporary: 'Temporary', gig: 'Gig', seasonal: 'Seasonal', internship: 'Internship', freelance: 'Freelance', live_in: 'Live-in' },
     housingType: { rent: 'Rent', sublet: 'Sublet', roommate: 'Roommate', sale: 'For Sale' },
     condition: { new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair', poor: 'Poor' },
+    // 00275's words, from the app's bundles.
+    serviceMode: { offering: "Offering", looking: "Looking for" },
+    serviceKind: { babysitting: "Babysitting", cleaning: "Cleaning", tutoring: "Tutoring", beauty: "Beauty at home", handyman: "Handyman", catering: "Cooking & catering", moving: "Moving help", elder_care: "Elder care", sewing: "Sewing & alterations", other: "Other" },
+    lostMode: { lost: "Lost", found: "Found" },
+    lostItem: { keys: "Keys", phone: "Phone", wallet_id: "Wallet or ID", passport: "Passport or documents", pet: "Pet", bag: "Bag", jewelry: "Jewelry", other: "Other" },
     need: { money: 'Funds', volunteers: 'Volunteers', goods: 'Goods', food: 'Food', shelter: 'Place to stay', transport: 'Rides', blood: 'Blood donors', services: 'Professional help' },
     format: { in_person: 'In person', online: 'Online', hybrid: 'In person + online' },
     pages: {
@@ -893,7 +913,7 @@ const COPY = {
   ru: {
     kinds: {
       housing: 'Жильё', job: 'Работа', sale: 'Продажа', travel: 'Поездки', deal: 'Скидка',
-      event: 'Событие', charity: 'Благотворительность', question: 'Спроси махаллю', news: 'Новости', ride: 'Такси и поездки',
+      event: 'Событие', charity: 'Благотворительность', question: 'Спроси махаллю', news: 'Новости', ride: 'Такси и поездки', service: "Услуги", lost: "Находки",
       business: 'Бизнес', community: 'Сообщество', pro: 'Специалист', circle: 'Круг',
     },
     open: 'Открыть в Mahallify',
@@ -925,11 +945,17 @@ const COPY = {
       departs: 'Отъезд', returns: 'Возвращение', format: 'Формат', venue: 'Место', admission: 'Вход',
       needs: 'Нужно', ends: 'До', source: 'Источник', published: 'Опубликовано', routes: 'Маршруты',
       seats: 'Места', price: 'Цена',
+      work: "Вид работы", covers: "Где работает", what: "Что это",
     },
     per: { hourly: '/час', daily: '/день', weekly: '/нед', monthly: '/мес', yearly: '/год' },
     jobType: { full_time: 'Полная занятость', part_time: 'Частичная занятость', contract: 'Контракт', temporary: 'Временная', gig: 'Подработка', seasonal: 'Сезонная', internship: 'Стажировка', freelance: 'Фриланс', live_in: 'С проживанием' },
     housingType: { rent: 'Аренда', sublet: 'Субаренда', roommate: 'Сосед', sale: 'Продажа' },
     condition: { new: 'Новый', like_new: 'Как новый', good: 'Хорошее', fair: 'Удовлетворительное', poor: 'Плохое' },
+    // 00275's words, from the app's bundles.
+    serviceMode: { offering: "Предлагаю", looking: "Ищу" },
+    serviceKind: { babysitting: "Няня", cleaning: "Уборка", tutoring: "Репетиторство", beauty: "Красота на дому", handyman: "Мастер на час", catering: "Готовка и кейтеринг", moving: "Помощь с переездом", elder_care: "Уход за пожилыми", sewing: "Шитьё и ремонт одежды", other: "Другое" },
+    lostMode: { lost: "Потеряно", found: "Найдено" },
+    lostItem: { keys: "Ключи", phone: "Телефон", wallet_id: "Кошелёк или удостоверение", passport: "Паспорт или документы", pet: "Питомец", bag: "Сумка", jewelry: "Украшение", other: "Другое" },
     need: { money: 'Деньги', volunteers: 'Волонтёры', goods: 'Вещи', food: 'Еда', shelter: 'Жильё', transport: 'Транспорт', blood: 'Доноры крови', services: 'Помощь специалиста' },
     format: { in_person: 'Очно', online: 'Онлайн', hybrid: 'Очно + онлайн' },
     pages: {
@@ -946,7 +972,7 @@ const COPY = {
   uz: {
     kinds: {
       housing: 'Uy-joy', job: 'Ish', sale: 'Sotuv', travel: 'Safar', deal: 'Chegirma',
-      event: 'Tadbir', charity: 'Xayriya', question: 'Mahalladan so‘rang', news: 'Yangiliklar', ride: 'Taksi va qatnov',
+      event: 'Tadbir', charity: 'Xayriya', question: 'Mahalladan so‘rang', news: 'Yangiliklar', ride: 'Taksi va qatnov', service: "Xizmatlar", lost: "Topilmalar",
       business: 'Biznes', community: 'Hamjamiyat', pro: 'Mutaxassis', circle: 'Doira',
     },
     open: 'Mahallify’da ochish',
@@ -978,11 +1004,17 @@ const COPY = {
       departs: 'Jo‘nash', returns: 'Qaytish', format: 'Format', venue: 'Joy', admission: 'Kirish',
       needs: 'Kerak', ends: 'Tugaydi', source: 'Manba', published: 'E’lon qilingan', routes: 'Yo‘nalishlar',
       seats: 'O‘rinlar', price: 'Narx',
+      work: "Ish turi", covers: "Ishlaydigan hudud", what: "Bu nima",
     },
     per: { hourly: '/soat', daily: '/kun', weekly: '/hafta', monthly: '/oy', yearly: '/yil' },
     jobType: { full_time: "To'liq ish kuni", part_time: 'Yarim stavka', contract: 'Shartnoma', temporary: 'Vaqtinchalik', gig: 'Haltura', seasonal: 'Mavsumiy', internship: 'Amaliyot', freelance: 'Frilans', live_in: 'Yashash joyi bilan' },
     housingType: { rent: 'Ijara', sublet: 'Subijara', roommate: 'Sherik', sale: 'Sotish' },
     condition: { new: 'Yangi', like_new: 'Yangidek', good: 'Yaxshi', fair: 'Qoniqarli', poor: 'Yomon' },
+    // 00275's words, from the app's bundles.
+    serviceMode: { offering: "Taklif qilaman", looking: "Qidiryapman" },
+    serviceKind: { babysitting: "Enaga", cleaning: "Tozalash", tutoring: "Repetitorlik", beauty: "Uyda goʻzallik", handyman: "Usta", catering: "Ovqat va keytering", moving: "Koʻchishda yordam", elder_care: "Keksalarga qarash", sewing: "Tikish va taʼmirlash", other: "Boshqa" },
+    lostMode: { lost: "Yoʻqoldi", found: "Topildi" },
+    lostItem: { keys: "Kalit", phone: "Telefon", wallet_id: "Hamyon yoki ID", passport: "Pasport yoki hujjatlar", pet: "Uy hayvoni", bag: "Sumka", jewelry: "Taqinchoq", other: "Boshqa" },
     need: { money: "Mablag'", volunteers: "Ko'ngillilar", goods: 'Buyumlar', food: 'Oziq-ovqat', shelter: 'Turar joy', transport: 'Transport', blood: 'Qon donorlari', services: 'Mutaxassis yordami' },
     format: { in_person: 'Jonli', online: 'Onlayn', hybrid: 'Jonli + onlayn' },
     pages: {
@@ -1313,6 +1345,18 @@ function factsOf(kind, row, lang, person) {
       lead = priceOf(row, lang);
       add(L.routes, row.routes);
       add(L.seats, row.seats);
+      add(L.where, where);
+      break;
+    case 'service':
+      lead = priceOf(row, lang);
+      add(L.type, c.serviceMode[row.mode]);
+      add(L.work, c.serviceKind[row.service]);
+      add(L.covers, where);
+      break;
+    case 'lost':
+      lead = c.lostMode[row.mode] || null;
+      add(L.what, c.lostItem[row.item]);
+      add(L.when, dateOnly(row.happened_on, lang));
       add(L.where, where);
       break;
     case 'business':
