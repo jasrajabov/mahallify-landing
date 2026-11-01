@@ -1,0 +1,9 @@
+# Apple and Google fetch these to verify that a mahallify.us/p/... link may
+# open the app. Both must be JSON, served without a redirect.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600

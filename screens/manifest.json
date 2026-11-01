@@ -1,0 +1,130 @@
+{
+  "billboard-home": {
+    "caption": "Browse every listing in one place",
+    "pillar": "billboard",
+    "sources": {
+      "920": {
+        "file": "billboard-home-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "billboard-home-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "billboard-housing": {
+    "caption": "Housing, filtered to your area",
+    "pillar": "billboard",
+    "sources": {
+      "920": {
+        "file": "billboard-housing-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "billboard-housing-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "ask-feed": {
+    "caption": "Questions from your neighbors",
+    "pillar": "ask",
+    "sources": {
+      "920": {
+        "file": "ask-feed-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "ask-feed-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "ask-thread": {
+    "caption": "Real answers, threaded",
+    "pillar": "ask",
+    "sources": {
+      "920": {
+        "file": "ask-thread-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "ask-thread-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "circles-feed": {
+    "caption": "Your circles, all in one feed",
+    "pillar": "circles",
+    "sources": {
+      "920": {
+        "file": "circles-feed-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "circles-feed-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "circles-discover": {
+    "caption": "Discover circles near you",
+    "pillar": "circles",
+    "sources": {
+      "920": {
+        "file": "circles-discover-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "circles-discover-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "pros-feed": {
+    "caption": "Professionals your community trusts",
+    "pillar": "pros",
+    "sources": {
+      "920": {
+        "file": "pros-feed-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "pros-feed-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  },
+  "pros-path": {
+    "caption": "Find a path to any company",
+    "pillar": "pros",
+    "sources": {
+      "920": {
+        "file": "pros-path-920.webp",
+        "w": 920,
+        "h": 1748
+      },
+      "460": {
+        "file": "pros-path-460.webp",
+        "w": 460,
+        "h": 874
+      }
+    }
+  }
+}

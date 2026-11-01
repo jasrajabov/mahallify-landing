@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>SMS Opt-In &amp; Consent — mahallify</title>
+    <meta name="description" content="How mahallify obtains SMS consent: the exact opt-in workflow and consent language shown to users before any text message is sent." />
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <meta name="theme-color" content="#04060f" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="alternate" hreflang="en" href="https://mahallify.us/sms-opt-in.html" />
+    <link rel="alternate" hreflang="uz" href="https://mahallify.us/uz/sms-opt-in.html" />
+    <link rel="alternate" hreflang="ru" href="https://mahallify.us/ru/sms-opt-in.html" />
+    <link rel="alternate" hreflang="x-default" href="https://mahallify.us/sms-opt-in.html" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Instrument+Serif:ital@1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/base.css?v=3" />
+    <link rel="stylesheet" href="assets/sms.css?v=3" />
+  </head>
+  <body>
+
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav" id="nav">
+      <div class="nav__bar">
+        <a href="index.html" class="nav__brand" aria-label="mahallify home">
+          <span class="nav__mark"><img src="assets/brand-mark.png" alt="" width="46" height="46" /></span>
+          <span class="nav__word">mahallify</span>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="index.html#community">Community</a>
+          <a href="index.html#features">Features</a>
+          <a href="index.html#screens">Screens</a>
+          <a href="index.html#how-it-works">How it works</a>
+          <a href="index.html#support">Support</a>
+        </nav>
+        <div class="nav__end">
+          <div class="lang-switch" role="group" aria-label="Language"><a href="sms-opt-in.html" hreflang="en" lang="en" aria-current="true">EN</a><a href="uz/sms-opt-in.html" hreflang="uz" lang="uz">UZ</a><a href="ru/sms-opt-in.html" hreflang="ru" lang="ru">RU</a></div>
+          <a href="index.html#download" class="btn btn--sm btn--primary nav__cta">Get the app</a>
+          <button
+            class="nav__burger"
+            id="navBurger"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="navMenu"
+          >
+            <span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="menu" id="navMenu" aria-hidden="true">
+      <a href="index.html#community">Community</a>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#screens">Screens</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="index.html#support">Support</a>
+      <a href="index.html#download" class="btn btn--primary menu__cta">Get the app</a>
+      <div class="menu__lang" role="group" aria-label="Language"><a href="sms-opt-in.html" hreflang="en" lang="en" aria-current="true">EN</a><a href="uz/sms-opt-in.html" hreflang="uz" lang="uz">UZ</a><a href="ru/sms-opt-in.html" hreflang="ru" lang="ru">RU</a></div>
+    </div>
+
+    <section class="page">
+      <div class="aurora"></div>
+      <div class="mesh"></div>
+      <div class="wrap page__inner">
+        <p class="page__label">SMS Consent</p>
+        <h1>SMS Opt-In &amp; Consent</h1>
+        <p class="page__meta">How mahallify obtains SMS consent · Use case: account sign-in verification (OTP) · Last updated: May 15, 2026</p>
+      </div>
+    </section>
+
+
+    <main id="main" class="wrap prose">
+
+      <h2>The opt-in workflow</h2>
+      <p>
+        mahallify sends <strong>one type of SMS message only</strong>: a one-time verification
+        code (OTP) used to sign a user into their account. There are no marketing, promotional,
+        or recurring messages of any kind.
+      </p>
+      <p>
+        A user opts in entirely within the mahallify mobile app. On the login screen the user
+        selects <strong>"Sign in with Phone,"</strong> picks their country code, and enters their
+        mobile number. Directly above the <strong>"Send Code"</strong> button — and separate from
+        acceptance of the Terms of Use or Privacy Policy — the user sees the explicit SMS consent
+        language shown below. Tapping <strong>"Send Code"</strong> is the affirmative opt-in
+        action and triggers exactly one verification SMS to the number entered.
+      </p>
+
+      <div class="optin-grid">
+        <div>
+          <div class="phone-frame" aria-label="mahallify app — Sign in with Phone screen">
+            <div class="app-logo"><img src="logo.jpg" alt="mahallify" /></div>
+            <div class="app-title">Sign in with Phone</div>
+            <div class="app-sub">Select your country and enter your number</div>
+
+            <div class="app-phone-row">
+              <div class="app-dial">🇺🇸 +1 <span class="chev">▾</span></div>
+              <div class="app-divider"></div>
+              <div class="app-phone-input">555 123 4567</div>
+            </div>
+
+            <div class="app-consent">
+              By entering your phone number and tapping <strong>"Send Code"</strong>, you agree to
+              receive a one-time verification code (OTP) from mahallify via SMS text message at the
+              number provided. This is for account sign-in only — mahallify does <strong>not</strong>
+              send marketing or promotional texts. Message frequency: 1 message per sign-in attempt.
+              Message and data rates may apply. Reply <strong>STOP</strong> to opt out,
+              <strong>HELP</strong> for help. See our <a href="terms.html">Terms</a> and
+              <a href="privacy.html">Privacy Policy</a>.
+            </div>
+
+            <div class="app-btn">Send Code</div>
+            <div class="app-hint">We'll send a 6-digit verification code via SMS.</div>
+          </div>
+          <div class="mock-caption">Exact opt-in screen as shown in the mahallify app</div>
+        </div>
+
+        <div>
+          <h2 style="margin-top:0;border:none;padding:0;">Exact consent language</h2>
+          <p>This is the verbatim text presented to the user at the point of opt-in, immediately above the "Send Code" button:</p>
+          <div class="verbatim">
+            <span class="lbl">Consent text shown in-app</span>
+            "By entering your phone number and tapping <strong>'Send Code'</strong>, you agree to
+            receive a one-time verification code (OTP) from mahallify via SMS text message at the
+            number provided. This is for account sign-in only — mahallify does not send marketing
+            or promotional texts. Message frequency: 1 message per sign-in attempt. Message and
+            data rates may apply. Reply <strong>STOP</strong> to opt out, <strong>HELP</strong>
+            for help. See our Terms and Privacy Policy."
+          </div>
+          <p>
+            Consent is captured by the user's deliberate action of entering their number and
+            tapping "Send Code." It is <strong>not</strong> bundled into acceptance of the Terms
+            of Use or Privacy Policy, which are separate, independently linked documents.
+          </p>
+        </div>
+      </div>
+
+      <h2>SMS program disclosure</h2>
+      <div class="sms-box">
+        <h3>mahallify SMS Program</h3>
+        <p><strong>Program:</strong> mahallify one-time verification codes (OTP) for account sign-in.</p>
+        <p><strong>Message type:</strong> Transactional only. One-time passcodes for authentication. No marketing or promotional messages are ever sent.</p>
+        <p><strong>Message frequency:</strong> One message per sign-in attempt. Not recurring.</p>
+        <p><strong>Cost:</strong> Message and data rates may apply.</p>
+        <p><strong>To opt out:</strong> Reply <strong>STOP</strong> to any message to cancel. You will receive a confirmation and no further messages will be sent.</p>
+        <p><strong>For help:</strong> Reply <strong>HELP</strong> or contact us at <a href="mailto:support@mahallify.us">support@mahallify.us</a>.</p>
+        <p>Your phone number is never sold or shared with third parties for marketing purposes.</p>
+      </div>
+
+      <h2>Terms &amp; Privacy</h2>
+      <p>Both documents are publicly accessible and linked directly on the opt-in screen, separately from the SMS consent:</p>
+      <div class="legal-links">
+        <a href="terms.html">📄 Terms of Use</a>
+        <a href="privacy.html">🔒 Privacy Policy</a>
+      </div>
+
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot__grid">
+          <div class="foot__brand">
+            <a href="index.html"><img src="assets/brand-mark.png" alt="" width="44" height="44" /><b>mahallify</b></a>
+            <p class="foot__tag">
+              Connecting Central Asian diaspora communities across the US and
+              Canada — one neighborhood at a time.
+            </p>
+          </div>
+          <div class="foot__col">
+            <h3>Community</h3>
+            <a href="index.html#community">Ask Mahalla</a>
+            <a href="index.html#community">Circles</a>
+            <a href="index.html#community">Professionals</a>
+          </div>
+          <div class="foot__col">
+            <h3>Product</h3>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#screens">Screens</a>
+            <a href="index.html#how-it-works">How it works</a>
+            <a href="index.html#download">Download</a>
+          </div>
+          <div class="foot__col">
+            <h3>Support &amp; Legal</h3>
+            <a href="mailto:support@mahallify.us">support@mahallify.us</a>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Use</a>
+            <a href="sms-opt-in.html">SMS Opt-In &amp; Consent</a>
+            <a href="safety.html">Child Safety Standards</a>
+            <a href="delete-account.html">Delete your account</a>
+          </div>
+        </div>
+        <div class="foot__bottom">
+          <p>© 2026 mahallify. All rights reserved.</p>
+          <p>Made with ❤️ for the community.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/base.js?v=3" defer></script>
+
+  </body>
+</html>

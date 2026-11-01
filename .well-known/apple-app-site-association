@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["9M993RJLFF.com.mahallify.app"],
+        "components": [{ "/": "/p/*", "comment": "A shared post: /p/<kind>/<id>" }]
+      }
+    ]
+  }
+}
