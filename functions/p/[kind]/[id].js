@@ -24,8 +24,10 @@
 // (the one the app's Universal / App Link config claims): `business` and
 // `community` (a business or community page, by its id), `pro` (a
 // professional, by the PERSON's id — the profile screen's key) and `circle`.
-// A professional is named by FIRST name and drawn with NO photo — a face does
-// not go on a page any signed-out visitor can open. A business or community
+// A professional is named by FIRST name and drawn with their PROFILE PHOTO
+// (product's call): a round face at the head of the card and the preview's
+// image — they are listed in the Directory to be found, and the face is what
+// the app's own row shows. A business or community
 // page names its owner the same way, by first name ("Owner: Aziz"), and that
 // line — like a post's "Posted by" — is in the link preview's text too. A circle shows what the
 // app's Explore shows anyone — name, cover, size, private or public — and
@@ -1085,10 +1087,14 @@ function isLive(kind, row) {
 /** A professional's own name and state live on the profile. First name only. */
 async function personOf(db, row) {
   if (!row.user_id || !UUID.test(row.user_id)) return null;
-  const people = await rest(db, `profiles?select=name,state&id=eq.${row.user_id}&limit=1`).catch(() => []);
+  const people = await rest(db, `profiles?select=name,state,avatar_url&id=eq.${row.user_id}&limit=1`).catch(() => []);
   const p = people[0];
   if (!p) return null;
-  return { first: String(p.name || '').trim().split(/\s+/)[0] || null, state: p.state || null };
+  return {
+    first: String(p.name || '').trim().split(/\s+/)[0] || null,
+    state: p.state || null,
+    avatar: p.avatar_url || null,
+  };
 }
 
 async function readPost(db, kind, id) {
@@ -1104,8 +1110,8 @@ async function readPost(db, kind, id) {
       kind === 'pro' ? personOf(db, row) : null,
       owned ? personOf(db, row).catch(() => null) : null,
     ]);
-    // A professional is drawn with no photo (see the top of the file).
-    const photo = kind === 'pro' ? null : row.cover_url || row.logo_url || null;
+    // A professional is drawn with their profile photo (see the top of the file).
+    const photo = kind === 'pro' ? person?.avatar || null : row.cover_url || row.logo_url || null;
     const ours = typeof photo === 'string' && photo.startsWith(`${db.url}/storage/v1/object/public/`);
     return { row, photo: ours ? photo : null, byline: owner?.first || null, person };
   }
@@ -1556,7 +1562,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <meta property="og:image" content="${esc(image)}" />
 <meta property="og:image:alt" content="${esc(title)}" />
 <meta property="og:url" content="${esc(url)}" />
-<meta name="twitter:card" content="${photo ? 'summary_large_image' : 'summary'}" />
+<meta name="twitter:card" content="${photo && kind !== 'pro' ? 'summary_large_image' : 'summary'}" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(ogDescription)}" />
 <meta name="twitter:image" content="${esc(image)}" />
@@ -1590,6 +1596,9 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
   .hero { position:relative; background:#111833; aspect-ratio:16/10; }
   .hero img { display:block; width:100%; height:100%; object-fit:cover; }
   .body { padding:20px 20px 22px; }
+  /* A professional's face: round, never the 16:10 hero a face would be cropped into. */
+  .face { display:block; width:88px; height:88px; border-radius:50%; object-fit:cover; margin-bottom:14px;
+    background:color-mix(in srgb, var(--accent) 26%, #1a2240); border:1px solid var(--line2); }
   .meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
   .kind { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
   .kind::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
@@ -1631,8 +1640,9 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
   ${
     found
       ? `<article class="card">
-    ${photo ? `<div class="hero"><img src="${esc(photo)}" alt="" onerror="this.parentNode.remove()" /></div>` : ''}
+    ${photo && kind !== 'pro' ? `<div class="hero"><img src="${esc(photo)}" alt="" onerror="this.parentNode.remove()" /></div>` : ''}
     <div class="body">
+      ${photo && kind === 'pro' ? `<img class="face" src="${esc(photo)}" alt="" width="88" height="88" onerror="this.remove()" />` : ''}
       <div class="meta"><span class="kind">${esc(kindLabel)}</span>${status ? `<span class="status">${esc(status)}</span>` : ''}</div>
       <h1>${esc(title)}</h1>
       ${lead ? `<p class="lead">${esc(lead)}</p>` : ''}
