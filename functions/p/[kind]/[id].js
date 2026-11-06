@@ -1688,7 +1688,11 @@ export async function onRequestGet({ request, params }) {
   const kind = String(params.kind || '');
   const id = String(params.id || '').toLowerCase();
   const db = dbOf(url);
-  const canonical = `${db.site}/p/${kind}/${id}`;
+  // A link the app shares names the sharer's language (`?lang=`, postLinks.ts),
+  // because a preview crawler sends none and would get English. `og:url` keeps
+  // it: WhatsApp and Facebook re-read the page at `og:url`.
+  const canonical =
+    `${db.site}/p/${kind}/${id}` + (url.searchParams.get('lang') === lang ? `?lang=${lang}` : '');
 
   let post = null;
   let failed = false;
