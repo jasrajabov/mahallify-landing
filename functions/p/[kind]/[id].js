@@ -31,7 +31,9 @@
 // page names its owner the same way, by first name ("Owner: Aziz"), and that
 // line — like a post's "Posted by" — is in the link preview's text too. A circle shows what the
 // app's Explore shows anyone — name, cover, size, private or public — and
-// never who is in it, even for a private one.
+// never who is in it, even for a private one. A MESSAGE link to a PUBLIC
+// circle (`?m=`) quotes that one message by its author's first name, as
+// Telegram previews a public group's; a private circle's never.
 //
 // WHAT IS READ goes through the anon key and RLS, and the page adds its own
 // `status = approved` and `is_active` test on top, because several listing
@@ -1135,6 +1137,28 @@ async function readPost(db, kind, id) {
   return { row, photo: ours ? photo : null, byline };
 }
 
+/** One message of a PUBLIC circle, for a message link (`?m=`, the app's
+ *  `circleMessageUrl`) — Telegram's preview of a public group's message. A
+ *  private circle's words are its members': the caller never asks for them,
+ *  and RLS answers anon nothing there anyway. A person's message only (never
+ *  a "joined" line), in that circle's own room, by first name, its mentions
+ *  as the app shows them. Best-effort — any failure is the circle alone. */
+async function readMessage(db, circleId, messageId) {
+  const rows = await rest(
+    db,
+    `messages?select=content,image_url,user_id,chat_rooms!inner(circle_id)&id=eq.${messageId}&kind=eq.user&chat_rooms.circle_id=eq.${circleId}&limit=1`,
+  ).catch(() => []);
+  const m = rows[0];
+  if (!m) return null;
+  const text = String(m.content || '').replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1').trim();
+  const people = UUID.test(m.user_id || '')
+    ? await rest(db, `profiles?select=name&id=eq.${m.user_id}&limit=1`).catch(() => [])
+    : [];
+  const first = String(people[0]?.name || '').trim().split(/\s+/)[0] || null;
+  const ours = typeof m.image_url === 'string' && m.image_url.startsWith(`${db.url}/storage/v1/object/public/`);
+  return { text, first, photo: ours ? m.image_url : null };
+}
+
 // ── What the card says ───────────────────────────────────────────────────────
 
 const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT']);
@@ -1485,7 +1509,7 @@ const APPLE_GLYPH =
 const PLAY_GLYPH =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.6 2.9c-.27.28-.43.72-.43 1.29v15.62c0 .57.16 1.01.43 1.29l.07.07 8.75-8.75v-.2L4.67 2.83l-.07.07zm11.73 11.44-2.91-2.92v-.2l2.91-2.92.07.04 3.45 1.96c.99.56.99 1.48 0 2.04l-3.45 1.96-.07.04zm-.07.04-2.98-2.98-8.68 8.68c.32.34.85.38 1.45.04l10.21-5.74m0-5.97L6.05 2.71c-.6-.34-1.13-.3-1.45.04l8.68 8.68 2.98-2.98z"/></svg>';
 
-function page({ lang, kind, id, post, url, db, expoGo, platform }) {
+function page({ lang, kind, id, post, url, db, expoGo, platform, message }) {
   const c = COPY[lang];
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
@@ -1507,8 +1531,14 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
       : c.missingTitle;
   const { lead, facts } = found ? factsOf(kind, post.row, lang, post.person) : { lead: null, facts: [] };
   const status = found && !isPage ? statusOf(kind, post.row, lang) : null;
-  const excerpt = found ? excerptOf(kind, post.row) : null;
-  const photo = found ? post.photo : null;
+  // A message link to a public circle quotes the message (`readMessage`).
+  const said = found ? post.message || null : null;
+  const saidText = (n) => {
+    const words = said?.text ? excerptOf('circle', { description: said.text }, n) : null;
+    return words && said.first ? `${said.first}: ${words}` : words;
+  };
+  const excerpt = said ? saidText(420) : found ? excerptOf(kind, post.row) : null;
+  const photo = found ? (said?.photo || post.photo) : null;
   // A page is not dated: it does not end, and the day it was made says nothing.
   const posted = found && !isPage ? postedOn(post.row.created_at, lang) : null;
   const byline = found && post.byline ? post.byline : null;
@@ -1523,11 +1553,18 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
   const summary = [status, lead, ...facts.slice(0, 2).map(f => f[1]), byline ? byWords(byline) : null]
     .filter(Boolean)
     .join(' · ');
-  const short = excerpt ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ') : null;
-  const ogDescription = found ? [summary, short].filter(Boolean).join(' — ') || c.lead : c.missingBody;
+  const short = said
+    ? (saidText(150) || '').replace(/\s+/g, ' ') || null
+    : excerpt
+      ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ')
+      : null;
+  // The message leads a message link's preview; the circle's figures follow.
+  const ogDescription = found
+    ? (said ? [short, summary] : [summary, short]).filter(Boolean).join(' — ') || c.lead
+    : c.missingBody;
   const image = photo || `${db.site}/icon-512.png`;
 
-  const appPath = src ? `${src.screen}/${id}` : '';
+  const appPath = !src ? '' : message ? `circle-chat/${id}?msg=${message}` : `${src.screen}/${id}`;
   const appUrl = `${db.scheme}://${appPath}`;
   const openHref = expoGo
     ? `${expoGo}/--/${appPath}`
@@ -1691,8 +1728,17 @@ export async function onRequestGet({ request, params }) {
   // A link the app shares names the sharer's language (`?lang=`, postLinks.ts),
   // because a preview crawler sends none and would get English. `og:url` keeps
   // it: WhatsApp and Facebook re-read the page at `og:url`.
-  const canonical =
-    `${db.site}/p/${kind}/${id}` + (url.searchParams.get('lang') === lang ? `?lang=${lang}` : '');
+  // A circle MESSAGE link (`?m=<message id>`, the app's `circleMessageUrl`):
+  // Open goes to the room at that message, and — on a PUBLIC circle — the
+  // page quotes it. `og:url` keeps `m`, or WhatsApp and Facebook re-read the
+  // circle's page and lose the message.
+  const m = url.searchParams.get('m') || '';
+  const message = kind === 'circle' && UUID.test(m) ? m.toLowerCase() : null;
+  const query = [
+    message ? `m=${message}` : null,
+    url.searchParams.get('lang') === lang ? `lang=${lang}` : null,
+  ].filter(Boolean);
+  const canonical = `${db.site}/p/${kind}/${id}` + (query.length ? `?${query.join('&')}` : '');
 
   let post = null;
   let failed = false;
@@ -1704,7 +1750,10 @@ export async function onRequestGet({ request, params }) {
     }
   }
 
-  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform });
+  if (post && message && post.row.is_private === false) {
+    post.message = await readMessage(db, id, message);
+  }
+  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform, message });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
