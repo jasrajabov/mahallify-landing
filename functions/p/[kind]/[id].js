@@ -1579,7 +1579,8 @@ function cardOf(lang, kind, post) {
   const words = said?.text ? excerptOf('circle', { description: said.text }, 300) : null;
   return {
     kind: c.kinds[kind],
-    jewel: JEWELS[KINDS[kind].jewel][0],
+    // The card is drawn dark: the jewel's luminous value.
+    jewel: JEWELS[KINDS[kind].jewel][1],
     place: place ? place[1] : null,
     status: isPage ? null : statusOf(kind, post.row, lang),
     title: titleOf(lang, kind, post),
