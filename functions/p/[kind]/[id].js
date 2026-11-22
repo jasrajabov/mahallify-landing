@@ -1903,19 +1903,7 @@ export async function onRequestGet({ request, params }) {
   ].filter(Boolean);
   const canonical = `${db.site}/p/${kind}/${id}` + (query.length ? `?${query.join('&')}` : '');
 
-  let post = null;
-  let failed = false;
-  if (has(KINDS, kind) && UUID.test(id)) {
-    try {
-      post = await readPost(db, kind, id);
-    } catch {
-      failed = true;
-    }
-  }
-
-  if (post && message && post.row.is_private === false) {
-    post.message = await readMessage(db, id, message);
-  }
+  const { post, failed } = await loadPost(db, kind, id, message);
 
   // The preview image's words, for the og-card edge function (see `cardOf`).
   if (url.searchParams.get('format') === 'card') {
@@ -1945,5 +1933,22 @@ export async function onRequestGet({ request, params }) {
   });
 }
 
+/** The post a page (or its preview image) is about, with a message link's
+ *  message when the circle is PUBLIC — a private circle's is never read.
+ *  `failed` is a read that errored, as opposed to a post that is not live. */
+async function loadPost(db, kind, id, message) {
+  if (!has(KINDS, kind) || !UUID.test(id)) return { post: null, failed: false };
+  let post;
+  try {
+    post = await readPost(db, kind, id);
+  } catch {
+    return { post: null, failed: true };
+  }
+  if (post && message && post.row.is_private === false) {
+    post.message = await readMessage(db, id, message);
+  }
+  return { post, failed: false };
+}
+
 // For the preview image route (functions/og/[kind]/[id].js).
-export { dbOf, has, KINDS, UUID };
+export { dbOf, has, KINDS, UUID, loadPost, cardOf, cardVersion };
