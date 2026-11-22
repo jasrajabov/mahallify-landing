@@ -1,10 +1,10 @@
-// https://mahallify.us/og/<kind>/<id>.png?lang=<l>[&m=<message>]&v=<hash>
+// https://mahallify.us/og/<kind>/<id>.jpg?lang=<l>[&m=<message>]&v=<hash>
 // — a shared link's preview image, the address the post page puts in
 // og:image (functions/p/[kind]/[id].js, `ogImage`).
 //
 // The card is DRAWN by the app project's `og-card` edge function (drawing
 // takes far more CPU than a request here may use) and KEPT here: Cloudflare's
-// cache holds each PNG for a day under its full address, and `v` changes
+// cache holds each JPEG for a day under its full address, and `v` changes
 // whenever the card's words do, so an edit is never served stale.
 //
 // If the function cannot draw it, the preview falls back to what it showed
@@ -19,7 +19,7 @@ export async function onRequestGet({ request, params, waitUntil }) {
   const url = new URL(request.url);
   const db = dbOf(url);
   const kind = String(params.kind || '');
-  const id = String(params.id || '').toLowerCase().replace(/\.png$/, '');
+  const id = String(params.id || '').toLowerCase().replace(/\.(jpg|png)$/, '');
   const lang = url.searchParams.get('lang') || 'en';
   const m = (url.searchParams.get('m') || '').toLowerCase();
   if (!has(KINDS, kind) || !UUID.test(id) || !LANGS.has(lang) || (m && !UUID.test(m))) {
@@ -34,9 +34,9 @@ export async function onRequestGet({ request, params, waitUntil }) {
   if (m) q.set('m', m);
   try {
     const res = await fetch(`${db.url}/functions/v1/og-card?${q}`, { signal: AbortSignal.timeout(15000) });
-    if (res.ok && (res.headers.get('content-type') || '').startsWith('image/png')) {
+    if (res.ok && (res.headers.get('content-type') || '').startsWith('image/jpeg')) {
       const out = new Response(res.body, {
-        headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400', 'x-robots-tag': 'noindex' },
+        headers: { 'content-type': 'image/jpeg', 'cache-control': 'public, max-age=86400', 'x-robots-tag': 'noindex' },
       });
       waitUntil(cache.put(request, out.clone()));
       return out;

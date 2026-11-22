@@ -1744,7 +1744,7 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <meta property="og:description" content="${esc(ogDescription)}" />
 <meta property="og:image" content="${esc(image)}" />
 <meta property="og:image:alt" content="${esc(title)}" />
-${ogImage ? `<meta property="og:image:type" content="image/png" />
+${ogImage ? `<meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />` : ''}
 <meta property="og:url" content="${esc(url)}" />
@@ -1928,7 +1928,7 @@ export async function onRequestGet({ request, params }) {
   // The drawn card, in the page's own language, at an address that changes
   // with what it says (`cardVersion`).
   const ogImage = post
-    ? `${db.site}/og/${kind}/${id}.png?` +
+    ? `${db.site}/og/${kind}/${id}.jpg?` +
       [`lang=${lang}`, message ? `m=${message}` : null, `v=${await cardVersion(cardOf(lang, kind, post))}`].filter(Boolean).join('&')
     : null;
   const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform, message, ogImage });
