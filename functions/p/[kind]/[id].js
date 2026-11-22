@@ -31,7 +31,9 @@
 // page names its owner the same way, by first name ("Owner: Aziz"), and that
 // line — like a post's "Posted by" — is in the link preview's text too. A circle shows what the
 // app's Explore shows anyone — name, cover, size, private or public — and
-// never who is in it, even for a private one.
+// never who is in it, even for a private one. A MESSAGE link to a PUBLIC
+// circle (`?m=`) quotes that one message by its author's first name, as
+// Telegram previews a public group's; a private circle's never.
 //
 // WHAT IS READ goes through the anon key and RLS, and the page adds its own
 // `status = approved` and `is_active` test on top, because several listing
@@ -105,8 +107,25 @@ const APP_STORE_ID = '6762940667';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// The app's category JEWELS (its src/styles/jewels.ts): [light, dark]. A
+// kind's colour is the one its stream rail gives it (kindMeta.ts).
+const JEWELS = {
+  saffron: ['#A35F00', '#FFB547'],
+  pomegranate: ['#B0243F', '#FF7C93'],
+  lapis: ['#2445C2', '#8EA8FF'],
+  turquoise: ['#00737D', '#3FD6DC'],
+  emerald: ['#157A47', '#4FD996'],
+  amethyst: ['#7135C2', '#C29CFF'],
+  rose: ['#A8326F', '#FF8DC8'],
+  coral: ['#B4471F', '#FF9871'],
+  pistachio: ['#4F7310', '#B5E35A'],
+  cerulean: ['#00639E', '#5CC2FF'],
+  gold: ['#876600', '#F2CF4A'],
+  plum: ['#8A2E8F', '#E58AE8'],
+};
+
 // Each kind's table, the columns its card is drawn from, where its photo
-// lives, its accent and the app SCREEN it opens. Mirrors SOURCES in the app's
+// lives, its jewel and the app SCREEN it opens. Mirrors SOURCES in the app's
 // src/features/share/sharedPost.ts — the kind words are a public URL format,
 // so this set only ever grows. Every column here exists in BOTH databases; one
 // that does not is a 400, which reads as "isn't available".
@@ -123,49 +142,49 @@ const KINDS = {
     cols: 'id,title,description,price,listing_type,bedrooms,bathrooms,city,state,status,is_active,availability,user_id,created_at',
     photos: 'housing',
     screen: 'housing',
-    accent: '#22d3ee',
+    jewel: 'turquoise',
   },
   job: {
     table: 'jobs',
     cols: 'id,title,description,pay_min,pay_max,pay_period,job_type,city,state,status,is_active,availability,user_id,business_id,created_at',
     photos: 'job',
     screen: 'job',
-    accent: '#f59e0b',
+    jewel: 'lapis',
   },
-  sale: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#a855f7' },
-  travel: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#38bdf8' },
-  deal: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', accent: '#34d399' },
+  sale: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', jewel: 'saffron' },
+  travel: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', jewel: 'cerulean' },
+  deal: { table: 'community_offers', cols: OFFER_COLS, photos: 'offer', screen: 'offer', jewel: 'pistachio' },
   event: {
     table: 'events',
     cols: 'id,title,description,start_date,end_date,timezone,recurrence,recurrence_interval,recurrence_weekdays,recurrence_until,ends_at,venue,event_format,price,price_type,city,state,status,is_active,user_id,organization_id,created_at',
     photos: 'event',
     screen: 'event',
-    accent: '#f472b6',
+    jewel: 'rose',
   },
   // NO `description`, NO `donate_links`, NO `goal_amount`: see the note at the top.
   charity: {
     table: 'charity_campaigns',
     cols: 'id,title,cover_url,needs,deadline,city,state,status,is_active,availability,expires_at,user_id,organization_id,created_at',
     screen: 'charity',
-    accent: '#fb7185',
+    jewel: 'pomegranate',
   },
   question: {
     table: 'mahalla_posts',
     cols: 'id,title,body,image_urls,comment_count,is_anonymous,state,status,user_id,created_at',
     screen: 'mahalla',
-    accent: '#3b82f6',
+    jewel: 'amethyst',
   },
   news: {
     table: 'news_posts',
     cols: 'id,title,description,origin,source_url,source_name,published_on,image_urls,city,state,status,is_active,user_id,created_at',
     screen: 'news',
-    accent: '#94a3b8',
+    jewel: 'emerald',
   },
   ride: {
     table: 'ride_offers',
     cols: 'id,title,description,price,price_type,routes,seats,image_urls,city,state,status,is_active,availability,user_id,created_at',
     screen: 'ride',
-    accent: '#facc15',
+    jewel: 'coral',
   },
   // 00275. Until that migration is in a database, its page reads "isn't
   // available" (the table is a 400), which is the honest answer.
@@ -173,27 +192,27 @@ const KINDS = {
     table: 'service_posts',
     cols: 'id,title,description,mode,service,price,price_type,image_urls,city,state,status,is_active,availability,user_id,created_at',
     screen: 'service',
-    accent: '#a78bfa',
+    jewel: 'plum',
   },
   lost: {
     table: 'lost_found_posts',
     cols: 'id,title,description,mode,item,happened_on,image_urls,city,state,status,is_active,availability,user_id,created_at',
     screen: 'lost',
-    accent: '#fbbf24',
+    jewel: 'gold',
   },
   // ── Not posts: `page` kinds have no byline, no date and their own copy. ──
   business: {
     table: 'businesses',
     cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,review_count,avg_rating,status,is_active,user_id,created_at',
     screen: 'business',
-    accent: '#38bdf8',
+    jewel: 'saffron',
     page: true,
   },
   community: {
     table: 'organizations',
     cols: 'id,name,tagline,description,category,city,state,logo_url,cover_url,theme_color,status,is_active,user_id,created_at',
     screen: 'organization',
-    accent: '#fb923c',
+    jewel: 'coral',
     page: true,
   },
   // By the person's id. `user/<id>` is the route EVERY build has — 2.0
@@ -203,14 +222,14 @@ const KINDS = {
     by: 'user_id',
     cols: 'id,user_id,specialties,category,years_experience,company,title,bio,state,status,created_at',
     screen: 'user',
-    accent: '#818cf8',
+    jewel: 'lapis',
     page: true,
   },
   circle: {
     table: 'circles',
     cols: 'id,name,description,cover_url,is_private,member_count,area,area_state,status,created_at',
     screen: 'circle',
-    accent: '#a78bfa',
+    jewel: 'amethyst',
     page: true,
   },
 };
@@ -867,6 +886,10 @@ const COPY = {
     lead: 'Mahallify is the community app for the Central Asian diaspora in the US and Canada.',
     more: 'Photos, full details and replies are in the app.',
     phoneHint: 'Open this link on your phone to see it in the app.',
+    phoneTitle: 'Open it on your phone',
+    openChat: 'Open the conversation',
+    noApp: 'No app yet?',
+    getFree: 'Get it free',
     gone: 'No longer available',
     ended: 'Ended',
     missingTitle: 'This post isn’t available',
@@ -926,6 +949,10 @@ const COPY = {
     lead: 'Mahallify — приложение для центральноазиатской диаспоры в США и Канаде.',
     more: 'Фото, подробности и ответы — в приложении.',
     phoneHint: 'Откройте эту ссылку на телефоне, чтобы посмотреть в приложении.',
+    phoneTitle: 'Откройте на телефоне',
+    openChat: 'Открыть переписку',
+    noApp: 'Ещё нет приложения?',
+    getFree: 'Скачайте бесплатно',
     gone: 'Больше не актуально',
     ended: 'Завершено',
     missingTitle: 'Этот пост недоступен',
@@ -985,6 +1012,10 @@ const COPY = {
     lead: 'Mahallify — AQSh va Kanadadagi Markaziy Osiyo diasporasi uchun ilova.',
     more: 'Rasmlar, tafsilotlar va javoblar — ilovada.',
     phoneHint: 'Ilovada ko‘rish uchun havolani telefoningizda oching.',
+    phoneTitle: 'Telefoningizda oching',
+    openChat: 'Suhbatni ochish',
+    noApp: 'Ilova hali yo‘qmi?',
+    getFree: 'Bepul yuklab oling',
     gone: 'Endi dolzarb emas',
     ended: 'Tugagan',
     missingTitle: 'Bu post mavjud emas',
@@ -1111,9 +1142,13 @@ async function readPost(db, kind, id) {
       owned ? personOf(db, row).catch(() => null) : null,
     ]);
     // A professional is drawn with their profile photo (see the top of the file).
-    const photo = kind === 'pro' ? person?.avatar || null : row.cover_url || row.logo_url || null;
-    const ours = typeof photo === 'string' && photo.startsWith(`${db.url}/storage/v1/object/public/`);
-    return { row, photo: ours ? photo : null, byline: owner?.first || null, person };
+    // A page's cover is the page's hero and its logo a tile on it; the
+    // preview's image is the cover, else the logo.
+    const own = u => (typeof u === 'string' && u.startsWith(`${db.url}/storage/v1/object/public/`) ? u : null);
+    const cover = own(row.cover_url);
+    const logo = own(row.logo_url);
+    const photo = kind === 'pro' ? own(person?.avatar) : cover || logo;
+    return { row, photo, cover, logo, byline: owner?.first || null, person };
   }
   const [photo, byline] = await Promise.all([
     (async () => {
@@ -1133,6 +1168,28 @@ async function readPost(db, kind, id) {
   // the page must not hotlink whatever address someone typed into one.
   const ours = typeof photo === 'string' && photo.startsWith(`${db.url}/storage/v1/object/public/`);
   return { row, photo: ours ? photo : null, byline };
+}
+
+/** One message of a PUBLIC circle, for a message link (`?m=`, the app's
+ *  `circleMessageUrl`) — Telegram's preview of a public group's message. A
+ *  private circle's words are its members': the caller never asks for them,
+ *  and RLS answers anon nothing there anyway. A person's message only (never
+ *  a "joined" line), in that circle's own room, by first name, its mentions
+ *  as the app shows them. Best-effort — any failure is the circle alone. */
+async function readMessage(db, circleId, messageId) {
+  const rows = await rest(
+    db,
+    `messages?select=content,image_url,user_id,chat_rooms!inner(circle_id)&id=eq.${messageId}&kind=eq.user&chat_rooms.circle_id=eq.${circleId}&limit=1`,
+  ).catch(() => []);
+  const m = rows[0];
+  if (!m) return null;
+  const text = String(m.content || '').replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1').trim();
+  const people = UUID.test(m.user_id || '')
+    ? await rest(db, `profiles?select=name&id=eq.${m.user_id}&limit=1`).catch(() => [])
+    : [];
+  const first = String(people[0]?.name || '').trim().split(/\s+/)[0] || null;
+  const ours = typeof m.image_url === 'string' && m.image_url.startsWith(`${db.url}/storage/v1/object/public/`);
+  return { text, first, photo: ours ? m.image_url : null };
 }
 
 // ── What the card says ───────────────────────────────────────────────────────
@@ -1485,36 +1542,101 @@ const APPLE_GLYPH =
 const PLAY_GLYPH =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.6 2.9c-.27.28-.43.72-.43 1.29v15.62c0 .57.16 1.01.43 1.29l.07.07 8.75-8.75v-.2L4.67 2.83l-.07.07zm11.73 11.44-2.91-2.92v-.2l2.91-2.92.07.04 3.45 1.96c.99.56.99 1.48 0 2.04l-3.45 1.96-.07.04zm-.07.04-2.98-2.98-8.68 8.68c.32.34.85.38 1.45.04l10.21-5.74m0-5.97L6.05 2.71c-.6-.34-1.13-.3-1.45.04l8.68 8.68 2.98-2.98z"/></svg>';
 
-function page({ lang, kind, id, post, url, db, expoGo, platform }) {
+/** The day an event's date tile shows ("Mar" over "21"), its current or next
+ *  occurrence on its own wall clock, as `eventWhen` prints it. */
+function eventDay(row, lang) {
+  if (!row.start_date) return null;
+  try {
+    const { start } = displayOccurrence(row, row.timezone || 'America/New_York');
+    const mon = new Intl.DateTimeFormat(LOCALES[lang], { month: 'short', timeZone: 'UTC' }).format(start).replace(/\.$/, '');
+    return { mon: mon.charAt(0).toLocaleUpperCase(LOCALES[lang]) + mon.slice(1), day: start.getUTCDate() };
+  } catch {
+    return null;
+  }
+}
+
+const DOC_GONE =
+  '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9.5 13.5l5 5M14.5 13.5l-5 5"/></svg>';
+
+/** A found post's headline: its title, a page's name, a professional's first
+ *  name; a trip with none is named from its fields, else the kind's word. */
+function titleOf(lang, kind, post) {
+  const named = kind === 'pro' ? post.person?.first : KINDS[kind].page ? post.row.name : post.row.title;
+  return String(named || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || COPY[lang].kinds[kind];
+}
+
+/** What the preview IMAGE says — the og-card edge function (the app's
+ *  supabase/functions/og-card) reads this as `?format=card` and only draws
+ *  it. The same words as the page: kind, place, title, the headline figure,
+ *  two more facts, the photo. Never a charity's story, never a private
+ *  circle's message (`post.message` is only read for a public one). */
+function cardOf(lang, kind, post) {
+  const c = COPY[lang];
+  const isPage = !!KINDS[kind].page;
+  const { lead, facts } = factsOf(kind, post.row, lang, post.person);
+  const place = facts.find(f => f[0] === c.labels.where) || null;
+  const said = post.message || null;
+  const words = said?.text ? excerptOf('circle', { description: said.text }, 300) : null;
+  return {
+    kind: c.kinds[kind],
+    // The card is drawn dark: the jewel's luminous value.
+    jewel: JEWELS[KINDS[kind].jewel][1],
+    place: place ? place[1] : null,
+    status: isPage ? null : statusOf(kind, post.row, lang),
+    title: titleOf(lang, kind, post),
+    lead,
+    sub: facts.filter(f => f !== place).slice(0, 2).map(f => f[1]).join(' · ') || null,
+    photo: said?.photo || (isPage && kind !== 'pro' ? post.cover || post.logo : post.photo) || null,
+    round: kind === 'pro',
+    day: kind === 'event' ? eventDay(post.row, lang) : null,
+    quote: words ? { who: said.first, text: words } : null,
+  };
+}
+
+/** A short hash of the card, put in the image's address: a post whose card
+ *  changes gets a new address, so a chat app that kept the old picture
+ *  fetches the new one, and the image can be cached for a day. */
+async function cardVersion(card) {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(card)));
+  return [...new Uint8Array(bytes).slice(0, 6)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function page({ lang, kind, id, post, url, db, expoGo, platform, message, ogImage }) {
   const c = COPY[lang];
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
   const isPage = !!src?.page;
-  // A page's own colour, when its owner chose one.
-  const themed = isPage && /^#[0-9a-f]{6}$/i.test(String(post?.row.theme_color || '')) ? post.row.theme_color : null;
-  const accent = themed || src?.accent || '#4f7dff';
-  const named = !found
-    ? null
-    : kind === 'pro'
-      ? post.person?.first
-      : isPage
-        ? post.row.name
-        : post.row.title;
-  const title = found
-    ? String(named || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || c.kinds[kind]
-    : isPage
-      ? c.pages.missingTitle
-      : c.missingTitle;
+  // The kind's jewel, as the app colours it: deep on the light page, luminous
+  // on the dark one. Only the kind's own word carries it.
+  const [jewelLight, jewelDark] = JEWELS[src?.jewel] || JEWELS.turquoise;
+  const title = found ? titleOf(lang, kind, post) : isPage ? c.pages.missingTitle : c.missingTitle;
   const { lead, facts } = found ? factsOf(kind, post.row, lang, post.person) : { lead: null, facts: [] };
   const status = found && !isPage ? statusOf(kind, post.row, lang) : null;
+  // A message link to a public circle quotes the message (`readMessage`).
+  const said = found ? post.message || null : null;
+  const saidText = (n) => {
+    const words = said?.text ? excerptOf('circle', { description: said.text }, n) : null;
+    return words && said.first ? `${said.first}: ${words}` : words;
+  };
+  const quote = said?.text ? excerptOf('circle', { description: said.text }) : null;
   const excerpt = found ? excerptOf(kind, post.row) : null;
-  const photo = found ? post.photo : null;
+  // The page's big picture: a post's first photo, a page's or circle's cover.
+  // A professional's face is drawn round instead, and a page's logo sits on
+  // its cover as a tile — never cropped into the 4:3 hero.
+  const hero = found && kind !== 'pro' ? (isPage ? post.cover : post.photo) : null;
+  const face = found && kind === 'pro' ? post.photo : null;
+  const logo = found && isPage ? post.logo : null;
+  const day = found && kind === 'event' ? eventDay(post.row, lang) : null;
   // A page is not dated: it does not end, and the day it was made says nothing.
   const posted = found && !isPage ? postedOn(post.row.created_at, lang) : null;
   const byline = found && post.byline ? post.byline : null;
   // "Posted by Aziz" on a post, "Owner: Aziz" on a business page.
   const byWords = (isPage && c.pages.by[kind]) || c.postedBy;
   const kindLabel = (kind && c.kinds[kind]) || 'Mahallify';
+  // The kind line names the place after the kind ("Housing · Brooklyn, NY"),
+  // so the facts list does not say it a second time.
+  const place = facts.find(f => f[0] === c.labels.where) || null;
+  const shownFacts = facts.filter(f => f !== place);
 
   // What a preview bot prints under the title: the figures first, then the
   // start of the post's own words.
@@ -1523,11 +1645,20 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
   const summary = [status, lead, ...facts.slice(0, 2).map(f => f[1]), byline ? byWords(byline) : null]
     .filter(Boolean)
     .join(' · ');
-  const short = excerpt ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ') : null;
-  const ogDescription = found ? [summary, short].filter(Boolean).join(' — ') || c.lead : c.missingBody;
-  const image = photo || `${db.site}/icon-512.png`;
+  const short = said
+    ? (saidText(150) || '').replace(/\s+/g, ' ') || null
+    : excerpt
+      ? excerptOf(kind, post.row, 150).replace(/\s+/g, ' ')
+      : null;
+  // The message leads a message link's preview; the circle's figures follow.
+  const ogDescription = found
+    ? (said ? [short, summary] : [summary, short]).filter(Boolean).join(' — ') || c.lead
+    : c.missingBody;
+  const photo = found ? said?.photo || post.photo : null;
+  // The drawn card (`/og/…`, below) for a live post; the icon otherwise.
+  const image = ogImage || photo || `${db.site}/icon-512.png`;
 
-  const appPath = src ? `${src.screen}/${id}` : '';
+  const appPath = !src ? '' : message ? `circle-chat/${id}?msg=${message}` : `${src.screen}/${id}`;
   const appUrl = `${db.scheme}://${appPath}`;
   const openHref = expoGo
     ? `${expoGo}/--/${appPath}`
@@ -1541,7 +1672,59 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
         ? [[PLAY_STORE, c.playStore, PLAY_GLYPH]]
         : [[APP_STORE, c.appStore, APPLE_GLYPH], [PLAY_STORE, c.playStore, PLAY_GLYPH]];
   const canOpen = found && platform !== 'other' && !!(expoGo || db.scheme);
+  const openWords = expoGo ? c.openExpo : said ? c.openChat : c.open;
   const legal = lang === 'en' ? '' : `${lang}/`;
+
+  const byLine =
+    byline || posted
+      ? `<div class="by">${byline ? `<span class="av">${esc(byline.slice(0, 1).toUpperCase())}</span>` : ''}<span>${
+          byline ? esc(byWords('\u0000')).replace('\u0000', `<b>${esc(byline)}</b>`) : ''
+        }${byline && posted ? ' · ' : ''}${posted ? esc(posted) : ''}</span></div>`
+      : '';
+  const kindLine = `<div class="meta"><p class="kind">${esc(kindLabel)}${
+    place ? ` <span>· ${esc(place[1])}</span>` : ''
+  }</p>${status ? `<span class="status">${esc(status)}</span>` : ''}</div>`;
+
+  const article = found
+    ? `${hero ? `<div class="hero"><img src="${esc(hero)}" alt="" onerror="this.parentNode.remove()" /></div>` : ''}
+    <div class="body">
+      ${face ? `<img class="face" src="${esc(face)}" alt="" width="88" height="88" onerror="this.remove()" />` : ''}
+      ${logo ? `<span class="logo"><img src="${esc(logo)}" alt="" width="76" height="76" onerror="this.parentNode.remove()" /></span>` : ''}
+      ${day ? `<div class="dated"><span class="day"><small>${esc(day.mon)}</small><b>${day.day}</b></span>${kindLine}</div>` : kindLine}
+      <h1>${esc(title)}</h1>
+      ${lead ? `<p class="lead">${esc(lead)}</p>` : ''}
+      ${quote || said?.photo ? `<figure class="quote">${said.first ? `<figcaption><span class="av">${esc(said.first.slice(0, 1).toUpperCase())}</span>${esc(said.first)}</figcaption>` : ''}${quote ? `<blockquote>${esc(quote)}</blockquote>` : ''}${said.photo ? `<img src="${esc(said.photo)}" alt="" onerror="this.remove()" />` : ''}</figure>` : ''}
+      ${shownFacts.length ? `<dl class="facts">${shownFacts.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+      ${excerpt ? `<p class="excerpt">${esc(excerpt)}</p>` : ''}
+      ${byLine}
+      <p class="more">${esc(isPage ? c.pages.more[kind] : c.more)}</p>
+    </div>`
+    : `<div class="missing">
+      <span class="gone">${DOC_GONE}</span>
+      <h1>${esc(title)}</h1>
+      <p>${esc(c.missingBody)}</p>
+    </div>`;
+
+  // On a phone that can open the app: a bar pinned to the bottom. Anywhere
+  // else (a computer, or nothing to open): the stores, in a side panel.
+  const storeButtons = stores
+    .map(([href, label, glyph]) => `<a class="btn store" href="${href}">${glyph}${esc(label)}</a>`)
+    .join('\n      ');
+  const ownStore = platform === 'android' ? PLAY_STORE : platform === 'ios' ? APP_STORE : '/get';
+  const bar = canOpen
+    ? `<div class="bar"><div class="bar-in">
+    <a class="btn primary" href="${esc(openHref)}">${esc(openWords)}</a>
+    <p class="alt">${esc(c.noApp)} <a href="${ownStore}">${esc(c.getFree)}</a></p>
+  </div></div>`
+    : '';
+  const side = canOpen
+    ? ''
+    : `<aside class="side"><div class="panel">
+      ${found && platform === 'other' ? `<h2>${esc(c.phoneTitle)}</h2><p>${esc(c.phoneHint)}</p>` : `<h2>${esc(c.get)}</h2>`}
+      <div class="stores">
+      ${storeButtons}
+      </div>
+    </div></aside>`;
 
   return `<!doctype html>
 <html lang="${lang}">
@@ -1551,8 +1734,9 @@ function page({ lang, kind, id, post, url, db, expoGo, platform }) {
 <title>${esc(title)} · Mahallify</title>
 <meta name="robots" content="noindex, nofollow" />
 <meta name="description" content="${esc(ogDescription)}" />
-<meta name="theme-color" content="#04060f" />
-<meta name="color-scheme" content="dark" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFFF" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0F17" />
+<meta name="color-scheme" content="light dark" />
 ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}, app-argument=${esc(appUrl)}" />` : ''}
 <meta property="og:site_name" content="Mahallify" />
 <meta property="og:type" content="${isPage ? (kind === 'pro' ? 'profile' : 'website') : 'article'}" />
@@ -1561,8 +1745,11 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <meta property="og:description" content="${esc(ogDescription)}" />
 <meta property="og:image" content="${esc(image)}" />
 <meta property="og:image:alt" content="${esc(title)}" />
+${ogImage ? `<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />` : ''}
 <meta property="og:url" content="${esc(url)}" />
-<meta name="twitter:card" content="${photo && kind !== 'pro' ? 'summary_large_image' : 'summary'}" />
+<meta name="twitter:card" content="${ogImage || (photo && kind !== 'pro') ? 'summary_large_image' : 'summary'}" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(ogDescription)}" />
 <meta name="twitter:image" content="${esc(image)}" />
@@ -1570,113 +1757,127 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
+  /* Light first, dark when the phone is dark — the app's own two palettes.
+     The one strong colour is the Open button; the kind's jewel colours only
+     the kind's word. */
   :root {
-    --bg:#04060f; --bg2:#090e1d; --card:#0c1226; --raise:rgba(255,255,255,.045);
-    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
-    --ink:#f3f6ff; --ink2:rgba(223,232,255,.72); --ink3:rgba(186,202,240,.55);
-    --brand:#22d3ee; --brandInk:#03222a; --brandMark:#45a8d2; --accent:${accent};
+    --bg:#FFFFFF; --page:#F4F5F8; --ink:#0B1220; --ink2:#454E60; --ink3:#636C7E;
+    --line:#E7E9EE; --chip:#F2F4F7; --pri:#0E7490; --onPri:#FFFFFF; --kind:${jewelLight};
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0B0F17; --page:#070A10; --ink:#F2F5FA; --ink2:#B7C0CF; --ink3:#8D97A8;
+      --line:#1F2633; --chip:#151B26; --pri:#3BC4D6; --onPri:#03222A; --kind:${jewelDark};
+    }
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { background:var(--bg); color:var(--ink); font-family:Onest,system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
-  body { min-height:100vh; background:
-    radial-gradient(900px 420px at 50% -120px, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
-    var(--bg); }
+  body { min-height:100vh; }
   a { color:inherit; }
-  .wrap { max-width:520px; margin:0 auto; padding:max(16px, env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
-  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; height:52px; margin-bottom:12px; }
+  .wrap { max-width:1040px; margin:0 auto; padding-top:env(safe-area-inset-top); }
+  .has-bar .wrap { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; height:56px; padding:0 16px; }
   /* The app's lockup (see assets/base.css): ratios off a 34pt wordmark. */
   .brand { --word:19px; display:flex; align-items:center; gap:calc(var(--word) * 10 / 34); text-decoration:none; }
   .brand img { flex:none; width:calc(var(--word) * 88 / 34); height:calc(var(--word) * 88 / 34); margin:calc(var(--word) * -22 / 34); }
-  .brand span { font-weight:700; font-size:var(--word); line-height:1; letter-spacing:-.025em; padding-top:calc(var(--word) * 4 / 34); color:var(--brandMark); }
-  .top .get { font-size:14px; font-weight:600; text-decoration:none; color:var(--ink2); padding:8px 12px; border-radius:999px; border:1px solid var(--line); background:var(--raise); }
-  .card { background:linear-gradient(180deg, var(--card), var(--bg2)); border:1px solid var(--line); border-radius:24px; overflow:hidden;
-    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 30px 70px -36px rgba(0,0,0,.95); }
-  .hero { position:relative; background:#111833; aspect-ratio:16/10; }
+  .brand span { font-weight:700; font-size:var(--word); line-height:1; letter-spacing:-.025em; padding-top:calc(var(--word) * 4 / 34); color:var(--ink); }
+  .top .get { display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:999px; border:1px solid var(--line); font-size:14px; font-weight:600; text-decoration:none; }
+  .layout { max-width:560px; margin:0 auto; }
+  .hero { position:relative; aspect-ratio:4/3; background:var(--chip); overflow:hidden; }
   .hero img { display:block; width:100%; height:100%; object-fit:cover; }
-  .body { padding:20px 20px 22px; }
-  /* A professional's face: round, never the 16:10 hero a face would be cropped into. */
-  .face { display:block; width:88px; height:88px; border-radius:50%; object-fit:cover; margin-bottom:14px;
-    background:color-mix(in srgb, var(--accent) 26%, #1a2240); border:1px solid var(--line2); }
+  .body { padding:20px 20px 0; }
+  .face { display:block; width:88px; height:88px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--chip); }
+  .logo { display:block; width:76px; height:76px; margin-bottom:14px; border-radius:20px; overflow:hidden; background:var(--chip); border:3px solid var(--bg); }
+  /* Lifted onto the hero only while there is one: a photo that fails to load
+     removes its .hero, and the tile drops back into the body. */
+  .hero + .body .logo { margin-top:-58px; position:relative; }
+  .logo img { display:block; width:100%; height:100%; object-fit:cover; }
+  .dated { display:flex; align-items:flex-end; gap:14px; }
+  .day { flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; width:64px; height:70px; border-radius:16px;
+    background:var(--bg); border:1px solid var(--line); box-shadow:0 8px 24px -14px rgba(11,18,32,.35); }
+  .hero + .body .day { margin-top:-50px; position:relative; }
+  .day small { font-size:13px; font-weight:600; color:var(--kind); }
+  .day b { font-size:26px; line-height:1.05; font-weight:700; letter-spacing:-.02em; }
+  .dated .meta { padding-bottom:4px; }
   .meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-  .kind { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .kind::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
-  .status { font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:rgba(255,255,255,.09); color:var(--ink); }
-  h1 { margin-top:10px; font-size:clamp(24px, 6.4vw, 30px); line-height:1.18; letter-spacing:-.025em; font-weight:800; overflow-wrap:anywhere; }
-  .lead { margin-top:8px; font-size:20px; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
-  .facts { margin-top:18px; border-top:1px solid var(--line); }
-  .fact { display:grid; grid-template-columns:minmax(88px, 32%) 1fr; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
-  .fact dt { font-size:13px; color:var(--ink3); padding-top:1px; }
+  .kind { font-size:14px; font-weight:600; color:var(--kind); }
+  .kind span { font-weight:500; color:var(--ink3); }
+  .status { font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--chip); color:var(--ink); }
+  h1 { margin-top:8px; font-size:28px; line-height:1.15; letter-spacing:-.025em; font-weight:700; overflow-wrap:anywhere; }
+  .lead { margin-top:10px; font-size:22px; font-weight:700; letter-spacing:-.01em; overflow-wrap:anywhere; }
+  .facts { margin-top:20px; border-top:1px solid var(--line); }
+  .fact { display:grid; grid-template-columns:minmax(96px, 32%) 1fr; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .fact dt { font-size:14px; color:var(--ink3); padding-top:1px; }
   .fact dd { font-size:15px; font-weight:500; line-height:1.4; overflow-wrap:anywhere; }
   .excerpt { margin-top:18px; font-size:15px; line-height:1.6; color:var(--ink2); white-space:pre-line; overflow-wrap:anywhere; }
+  .quote { margin-top:20px; padding:18px 18px 16px; border-radius:20px; background:var(--chip); }
+  .quote figcaption { display:flex; align-items:center; gap:10px; font-size:14px; font-weight:600; }
+  .quote blockquote { margin-top:12px; font-size:19px; line-height:1.45; letter-spacing:-.01em; font-weight:500; white-space:pre-line; overflow-wrap:anywhere; }
+  .quote img { display:block; width:100%; margin-top:14px; border-radius:14px; }
+  .av { flex:none; display:grid; place-items:center; width:32px; height:32px; border-radius:50%; font-weight:700; font-size:14px;
+    color:var(--kind); background:color-mix(in srgb, var(--kind) 12%, var(--bg)); }
   .by { display:flex; align-items:center; gap:10px; margin-top:18px; font-size:14px; color:var(--ink3); }
-  .by .av { flex:none; display:grid; place-items:center; width:30px; height:30px; border-radius:50%; font-weight:700; font-size:13px; color:var(--ink);
-    background:color-mix(in srgb, var(--accent) 26%, #1a2240); }
   .by b { color:var(--ink); font-weight:600; }
   .more { margin-top:16px; font-size:13px; color:var(--ink3); }
-  .missing { padding:36px 22px 30px; text-align:center; }
-  .missing .glyph { display:block; width:112px; height:112px; margin:-24px auto -8px; }
-  .missing h1 { font-size:24px; margin-top:0; }
-  .missing p { margin-top:8px; color:var(--ink2); font-size:15px; line-height:1.5; }
-  .actions { display:grid; gap:10px; margin-top:18px; }
-  .btn { display:flex; align-items:center; justify-content:center; gap:9px; min-height:52px; border-radius:16px; font-size:16px; font-weight:600; text-decoration:none; }
-  .btn svg { width:19px; height:19px; }
-  .btn.primary { background:var(--brand); color:var(--brandInk); box-shadow:0 10px 30px -12px rgba(34,211,238,.6); }
-  .btn.secondary { background:var(--raise); color:var(--ink); border:1px solid var(--line2); }
-  .hint { margin-top:12px; text-align:center; font-size:13px; color:var(--ink3); }
-  .foot { margin-top:28px; padding-top:18px; border-top:1px solid var(--line); font-size:13px; line-height:1.55; color:var(--ink3); }
+  .missing { padding:64px 32px 24px; text-align:center; }
+  .gone { display:inline-grid; place-items:center; width:64px; height:64px; border-radius:20px; background:var(--chip); color:var(--ink3); }
+  .gone svg { width:28px; height:28px; }
+  .missing h1 { margin-top:20px; font-size:24px; }
+  .missing p { margin-top:10px; color:var(--ink2); font-size:15px; line-height:1.55; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:9px; min-height:52px; border-radius:14px; font-size:16px; font-weight:600; text-decoration:none; }
+  .btn svg { width:18px; height:18px; }
+  .btn.primary { background:var(--pri); color:var(--onPri); }
+  .btn.store { min-height:48px; font-size:15px; border:1px solid var(--line); background:var(--bg); color:var(--ink); }
+  .bar { position:fixed; left:0; right:0; bottom:0; z-index:10; background:var(--bg); border-top:1px solid var(--line);
+    padding:12px 16px calc(14px + env(safe-area-inset-bottom)); }
+  .bar-in { max-width:528px; margin:0 auto; display:grid; gap:10px; }
+  .alt { text-align:center; font-size:13px; color:var(--ink3); }
+  .alt a { font-weight:600; color:var(--ink); }
+  .side { padding:28px 20px 0; }
+  .panel h2 { font-size:20px; line-height:1.25; font-weight:700; letter-spacing:-.015em; }
+  .panel p { margin-top:8px; font-size:14px; line-height:1.55; color:var(--ink2); }
+  .stores { display:grid; gap:10px; margin-top:18px; }
+  .foot { max-width:560px; margin:32px auto 0; padding:18px 20px calc(28px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); font-size:13px; line-height:1.55; color:var(--ink3); }
   .foot nav { display:flex; gap:16px; margin-top:10px; }
   .foot nav a { text-decoration:none; color:var(--ink2); }
+  /* A computer: the post as a card on a quiet ground, the stores beside it. */
+  @media (min-width: 900px) {
+    html,body { background:var(--page); }
+    .top { height:72px; padding:0 32px; background:var(--bg); border-bottom:1px solid var(--line); }
+    .wrap { max-width:none; }
+    .layout { max-width:1040px; display:grid; grid-template-columns:minmax(0, 600px) 340px; justify-content:center; align-items:start; gap:40px; padding:40px 32px 0; }
+    /* A tablet that can open the app has the bar, not the panel: one column. */
+    .layout.solo { grid-template-columns:minmax(0, 600px); }
+    .post { background:var(--bg); border:1px solid var(--line); border-radius:24px; overflow:hidden; }
+    .hero { aspect-ratio:2/1; }
+    .body { padding:26px 30px 28px; }
+    .missing { padding:72px 40px 64px; }
+    .side { position:sticky; top:32px; padding:0; }
+    .panel { background:var(--bg); border:1px solid var(--line); border-radius:24px; padding:28px; }
+    .foot { max-width:980px; margin-top:48px; padding:18px 32px 36px; }
+  }
 </style>
 </head>
-<body>
+<body${bar ? ' class="has-bar"' : ''}>
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/"><img src="/assets/brand-mark.png" alt="" width="49" height="49" /><span>mahallify</span></a>
     <a class="get" href="/get">${esc(c.getShort)}</a>
   </header>
-  <main>
-  ${
-    found
-      ? `<article class="card">
-    ${photo && kind !== 'pro' ? `<div class="hero"><img src="${esc(photo)}" alt="" onerror="this.parentNode.remove()" /></div>` : ''}
-    <div class="body">
-      ${photo && kind === 'pro' ? `<img class="face" src="${esc(photo)}" alt="" width="88" height="88" onerror="this.remove()" />` : ''}
-      <div class="meta"><span class="kind">${esc(kindLabel)}</span>${status ? `<span class="status">${esc(status)}</span>` : ''}</div>
-      <h1>${esc(title)}</h1>
-      ${lead ? `<p class="lead">${esc(lead)}</p>` : ''}
-      ${facts.length ? `<dl class="facts">${facts.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
-      ${excerpt ? `<p class="excerpt">${esc(excerpt)}</p>` : ''}
-      ${
-        byline || posted
-          ? `<div class="by">${byline ? `<span class="av">${esc(byline.slice(0, 1).toUpperCase())}</span>` : ''}<span>${
-              byline ? esc(byWords('\u0000')).replace('\u0000', `<b>${esc(byline)}</b>`) : ''
-            }${byline && posted ? ' · ' : ''}${posted ? esc(posted) : ''}</span></div>`
-          : ''
-      }
-      <p class="more">${esc(isPage ? c.pages.more[kind] : c.more)}</p>
-    </div>
-  </article>`
-      : `<article class="card missing">
-    <img class="glyph" src="/assets/brand-mark.png" alt="" width="112" height="112" />
-    <h1>${esc(title)}</h1>
-    <p>${esc(c.missingBody)}</p>
-  </article>`
-  }
-  <div class="actions">
-    ${canOpen ? `<a class="btn primary" href="${esc(openHref)}">${esc(expoGo ? c.openExpo : c.open)}</a>` : ''}
-    ${stores
-      .map(([href, label, glyph]) => `<a class="btn ${canOpen ? 'secondary' : 'primary'}" href="${href}">${glyph}${esc(c.get)} · ${esc(label)}</a>`)
-      .join('\n    ')}
+  <div class="layout${side ? '' : ' solo'}">
+    <main class="post">
+    ${article}
+    </main>
+    ${side}
   </div>
-  ${found && platform === 'other' ? `<p class="hint">${esc(c.phoneHint)}</p>` : ''}
-  </main>
   <footer class="foot">
     ${esc(c.lead)}
     <nav><a href="/${legal}privacy.html">${esc(c.privacy)}</a><a href="/${legal}terms.html">${esc(c.terms)}</a></nav>
   </footer>
 </div>
+${bar}
 </body>
 </html>`;
 }
@@ -1691,20 +1892,35 @@ export async function onRequestGet({ request, params }) {
   // A link the app shares names the sharer's language (`?lang=`, postLinks.ts),
   // because a preview crawler sends none and would get English. `og:url` keeps
   // it: WhatsApp and Facebook re-read the page at `og:url`.
-  const canonical =
-    `${db.site}/p/${kind}/${id}` + (url.searchParams.get('lang') === lang ? `?lang=${lang}` : '');
+  // A circle MESSAGE link (`?m=<message id>`, the app's `circleMessageUrl`):
+  // Open goes to the room at that message, and — on a PUBLIC circle — the
+  // page quotes it. `og:url` keeps `m`, or WhatsApp and Facebook re-read the
+  // circle's page and lose the message.
+  const m = url.searchParams.get('m') || '';
+  const message = kind === 'circle' && UUID.test(m) ? m.toLowerCase() : null;
+  const query = [
+    message ? `m=${message}` : null,
+    url.searchParams.get('lang') === lang ? `lang=${lang}` : null,
+  ].filter(Boolean);
+  const canonical = `${db.site}/p/${kind}/${id}` + (query.length ? `?${query.join('&')}` : '');
 
-  let post = null;
-  let failed = false;
-  if (has(KINDS, kind) && UUID.test(id)) {
-    try {
-      post = await readPost(db, kind, id);
-    } catch {
-      failed = true;
-    }
+  const { post, failed } = await loadPost(db, kind, id, message);
+
+  // The preview image's words, for the og-card edge function (see `cardOf`).
+  if (url.searchParams.get('format') === 'card') {
+    return new Response(post ? JSON.stringify(cardOf(lang, kind, post)) : '{}', {
+      status: post ? 200 : failed ? 503 : 404,
+      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' },
+    });
   }
 
-  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform });
+  // The drawn card, in the page's own language, at an address that changes
+  // with what it says (`cardVersion`).
+  const ogImage = post
+    ? `${db.site}/og/${kind}/${id}.jpg?` +
+      [`lang=${lang}`, message ? `m=${message}` : null, `v=${await cardVersion(cardOf(lang, kind, post))}`].filter(Boolean).join('&')
+    : null;
+  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform, message, ogImage });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
@@ -1717,3 +1933,23 @@ export async function onRequestGet({ request, params }) {
     },
   });
 }
+
+/** The post a page (or its preview image) is about, with a message link's
+ *  message when the circle is PUBLIC — a private circle's is never read.
+ *  `failed` is a read that errored, as opposed to a post that is not live. */
+async function loadPost(db, kind, id, message) {
+  if (!has(KINDS, kind) || !UUID.test(id)) return { post: null, failed: false };
+  let post;
+  try {
+    post = await readPost(db, kind, id);
+  } catch {
+    return { post: null, failed: true };
+  }
+  if (post && message && post.row.is_private === false) {
+    post.message = await readMessage(db, id, message);
+  }
+  return { post, failed: false };
+}
+
+// For the preview image route (functions/og/[kind]/[id].js).
+export { dbOf, has, KINDS, UUID, loadPost, cardOf, cardVersion };
