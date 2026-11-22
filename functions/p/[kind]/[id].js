@@ -1558,7 +1558,49 @@ function eventDay(row, lang) {
 const DOC_GONE =
   '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9.5 13.5l5 5M14.5 13.5l-5 5"/></svg>';
 
-function page({ lang, kind, id, post, url, db, expoGo, platform, message }) {
+/** A found post's headline: its title, a page's name, a professional's first
+ *  name; a trip with none is named from its fields, else the kind's word. */
+function titleOf(lang, kind, post) {
+  const named = kind === 'pro' ? post.person?.first : KINDS[kind].page ? post.row.name : post.row.title;
+  return String(named || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || COPY[lang].kinds[kind];
+}
+
+/** What the preview IMAGE says — the og-card edge function (the app's
+ *  supabase/functions/og-card) reads this as `?format=card` and only draws
+ *  it. The same words as the page: kind, place, title, the headline figure,
+ *  two more facts, the photo. Never a charity's story, never a private
+ *  circle's message (`post.message` is only read for a public one). */
+function cardOf(lang, kind, post) {
+  const c = COPY[lang];
+  const isPage = !!KINDS[kind].page;
+  const { lead, facts } = factsOf(kind, post.row, lang, post.person);
+  const place = facts.find(f => f[0] === c.labels.where) || null;
+  const said = post.message || null;
+  const words = said?.text ? excerptOf('circle', { description: said.text }, 300) : null;
+  return {
+    kind: c.kinds[kind],
+    jewel: JEWELS[KINDS[kind].jewel][0],
+    place: place ? place[1] : null,
+    status: isPage ? null : statusOf(kind, post.row, lang),
+    title: titleOf(lang, kind, post),
+    lead,
+    sub: facts.filter(f => f !== place).slice(0, 2).map(f => f[1]).join(' · ') || null,
+    photo: said?.photo || (isPage && kind !== 'pro' ? post.cover || post.logo : post.photo) || null,
+    round: kind === 'pro',
+    day: kind === 'event' ? eventDay(post.row, lang) : null,
+    quote: words ? { who: said.first, text: words } : null,
+  };
+}
+
+/** A short hash of the card, put in the image's address: a post whose card
+ *  changes gets a new address, so a chat app that kept the old picture
+ *  fetches the new one, and the image can be cached for a day. */
+async function cardVersion(card) {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(card)));
+  return [...new Uint8Array(bytes).slice(0, 6)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function page({ lang, kind, id, post, url, db, expoGo, platform, message, ogImage }) {
   const c = COPY[lang];
   const found = !!post;
   const src = kind ? KINDS[kind] : null;
@@ -1566,18 +1608,7 @@ function page({ lang, kind, id, post, url, db, expoGo, platform, message }) {
   // The kind's jewel, as the app colours it: deep on the light page, luminous
   // on the dark one. Only the kind's own word carries it.
   const [jewelLight, jewelDark] = JEWELS[src?.jewel] || JEWELS.turquoise;
-  const named = !found
-    ? null
-    : kind === 'pro'
-      ? post.person?.first
-      : isPage
-        ? post.row.name
-        : post.row.title;
-  const title = found
-    ? String(named || '').trim() || (kind === 'travel' ? travelTitle(post.row, lang) : null) || c.kinds[kind]
-    : isPage
-      ? c.pages.missingTitle
-      : c.missingTitle;
+  const title = found ? titleOf(lang, kind, post) : isPage ? c.pages.missingTitle : c.missingTitle;
   const { lead, facts } = found ? factsOf(kind, post.row, lang, post.person) : { lead: null, facts: [] };
   const status = found && !isPage ? statusOf(kind, post.row, lang) : null;
   // A message link to a public circle quotes the message (`readMessage`).
@@ -1623,7 +1654,8 @@ function page({ lang, kind, id, post, url, db, expoGo, platform, message }) {
     ? (said ? [short, summary] : [summary, short]).filter(Boolean).join(' — ') || c.lead
     : c.missingBody;
   const photo = found ? said?.photo || post.photo : null;
-  const image = photo || `${db.site}/icon-512.png`;
+  // The drawn card (`/og/…`, below) for a live post; the icon otherwise.
+  const image = ogImage || photo || `${db.site}/icon-512.png`;
 
   const appPath = !src ? '' : message ? `circle-chat/${id}?msg=${message}` : `${src.screen}/${id}`;
   const appUrl = `${db.scheme}://${appPath}`;
@@ -1712,8 +1744,11 @@ ${found && db.storeBanner ? `<meta name="apple-itunes-app" content="app-id=${APP
 <meta property="og:description" content="${esc(ogDescription)}" />
 <meta property="og:image" content="${esc(image)}" />
 <meta property="og:image:alt" content="${esc(title)}" />
+${ogImage ? `<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />` : ''}
 <meta property="og:url" content="${esc(url)}" />
-<meta name="twitter:card" content="${photo && kind !== 'pro' ? 'summary_large_image' : 'summary'}" />
+<meta name="twitter:card" content="${ogImage || (photo && kind !== 'pro') ? 'summary_large_image' : 'summary'}" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(ogDescription)}" />
 <meta name="twitter:image" content="${esc(image)}" />
@@ -1881,7 +1916,22 @@ export async function onRequestGet({ request, params }) {
   if (post && message && post.row.is_private === false) {
     post.message = await readMessage(db, id, message);
   }
-  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform, message });
+
+  // The preview image's words, for the og-card edge function (see `cardOf`).
+  if (url.searchParams.get('format') === 'card') {
+    return new Response(post ? JSON.stringify(cardOf(lang, kind, post)) : '{}', {
+      status: post ? 200 : failed ? 503 : 404,
+      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' },
+    });
+  }
+
+  // The drawn card, in the page's own language, at an address that changes
+  // with what it says (`cardVersion`).
+  const ogImage = post
+    ? `${db.site}/og/${kind}/${id}.png?` +
+      [`lang=${lang}`, message ? `m=${message}` : null, `v=${await cardVersion(cardOf(lang, kind, post))}`].filter(Boolean).join('&')
+    : null;
+  const html = page({ lang, kind: has(KINDS, kind) ? kind : null, id, post, url: canonical, db, expoGo: expoGoOf(url, db), platform, message, ogImage });
   return new Response(html, {
     status: post ? 200 : failed ? 503 : 404,
     headers: {
@@ -1894,3 +1944,6 @@ export async function onRequestGet({ request, params }) {
     },
   });
 }
+
+// For the preview image route (functions/og/[kind]/[id].js).
+export { dbOf, has, KINDS, UUID };
